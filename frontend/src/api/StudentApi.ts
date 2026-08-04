@@ -1,22 +1,28 @@
-import { lessonRecords, students } from "../services/mockStudentData";
+import ApiClient from "./ApiClient";
+
+import type { LessonRecord } from "../types/lessonRecord";
+import type { Student } from "../types/student";
 
 class StudentApi {
-  getStudents() {
-    return students;
+  async getStudents(): Promise<Student[]> {
+    const response = await ApiClient.get<Student[]>("/students");
+    return response.data;
   }
 
-  getStudent(studentId: string) {
-    return students.find((student) => student.studentId === studentId);
-  }
-
-  getLessonRecords() {
-    return lessonRecords;
-  }
-
-  getLessonRecord(studentId: string) {
-    return lessonRecords.filter(
-      (lessonRecord) => lessonRecord.studentId === studentId,
+  async getStudentRecords(studentId: string): Promise<LessonRecord[]> {
+    const response = await ApiClient.get<LessonRecord[]>(
+      `/students/${studentId}/records`,
     );
+
+    return response.data;
+  }
+
+  async askAi(question: string): Promise<string> {
+    const response = await ApiClient.post<{ answer: string }>("/ai/ask", {
+      question,
+    });
+
+    return response.data.answer;
   }
 }
 
