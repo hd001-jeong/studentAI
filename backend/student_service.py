@@ -1,33 +1,24 @@
-from csv_service import read_students
+"""
+Student Service
+
+프론트에서 학생 데이터를 요청하면
+여기서 어떤 저장소(CSV, Google Sheet, DB)를 사용할지 결정한다.
+"""
+from google_sheet_service import (
+    read_students_from_sheet,
+    update_homework1_achievement,
+)
 
 
-def get_students():
-    records = read_students()
-    students_by_id = {}
-
-    for record in records:
-        student_id = record["studentId"]
-
-        # 아직 학생 정보가 입력되지 않은 빈 행은 제외
-        if not student_id:
-            continue
-
-        students_by_id[student_id] = {
-            "studentId": student_id,
-            "studentName": record["studentName"],
-            "schoolName": record["schoolName"],
-            "grade": record["grade"],
-            "teacherName": record["teacherName"],
-        }
-
-    return list(students_by_id.values())
+def read_students():
+    return read_students_from_sheet()
 
 
-def get_student_records(student_id: str):
-    records = read_students()
-
-    return [
-        record
-        for record in records
-        if record["studentId"] == student_id
-    ]
+def update_homework1(
+    record_id: str,
+    achievement: int,
+):
+    return update_homework1_achievement(
+        record_id,
+        achievement,
+    )

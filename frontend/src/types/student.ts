@@ -1,7 +1,4 @@
-export interface Student {
-  studentId: string;
-  studentName: string;
-  schoolName: string;
-  grade: string;
-  teacherName: string;
+export interface StudentSelectOption {
+  value: string;
+  label: string;
 }

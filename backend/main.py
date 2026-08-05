@@ -1,9 +1,12 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from ai_service import ask_student_ai
-from free_ai_service import ask_free_student_ai
-from student_service import get_student_records, get_students
+from pydantic import BaseModel
+
+from student_service import (
+    read_students,
+    update_homework1,
+)
 
 app = FastAPI()
 
@@ -13,62 +16,29 @@ app.add_middleware(
         "http://localhost:5173",
         "http://127.0.0.1:5173",
     ],
-    allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_credentials=True,
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-@app.get("/")
-def home():
-    return {
-        "message": "Student AI API",
-        "status": "success",
-    }
-
-
 @app.get("/students")
-def read_student_list():
-    return get_students()
+def get_students():
+    return read_students()
 
 
-@app.get("/students/{student_id}/records")
-def read_student_records(student_id: str):
-    records = get_student_records(student_id)
+class Homework1UpdateRequest(BaseModel):
+    achievement: int
 
-    if not records:
-        raise HTTPException(
-            status_code=404,
-            detail="학생 수업 기록을 찾을 수 없습니다.",
-        )
 
-    return records
-
-# @app.post("/ai/ask")
-# def ask_ai(body: dict):
-#     question = body.get("question", "").strip()
-
-#     if not question:
-#         raise HTTPException(
-#             status_code=400,
-#             detail="질문을 입력해주세요.",
-#         )
-
-#     answer = ask_student_ai(question)
-
-#     return {
-#         "answer": answer,
-#     }
-@app.post("/ai/ask")
-def ask_ai(body: dict):
-    question = body.get("question", "").strip()
-
-    if not question:
-        raise HTTPException(
-            status_code=400,
-            detail="질문을 입력해주세요.",
-        )
-
-    return {
-        "answer": ask_free_student_ai(question),
-    }
+@app.put(
+    "/students/{record_id}/homework1",
+)
+def update_student_homework1(
+    record_id: str,
+    request: Homework1UpdateRequest,
+):
+    return update_homework1(
+        record_id,
+        request.achievement,
+    )

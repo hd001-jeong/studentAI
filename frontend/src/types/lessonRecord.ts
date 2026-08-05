@@ -1,7 +1,24 @@
+export interface AchievementItem {
+  name: string;
+  achievement: number | null;
+}
+
+export type AchievementTuple = [
+  AchievementItem,
+  AchievementItem,
+  AchievementItem,
+];
+
+export type MemorizationAchievement = "통과" | "보충 필요" | "결석" | null;
+
 export interface LessonRecord {
-  number: number;
+  recordId: string;
+
+  number: number | null;
   category: string;
-  week: string;
+
+  weekNumber: number;
+  weekLabel: string;
   progress: string;
   lessonDate: string;
 
@@ -11,40 +28,30 @@ export interface LessonRecord {
   grade: string;
   teacherName: string;
 
-  homework1: string;
-  homework1Achievement: number;
+  homeworks: AchievementTuple;
+  dailyEvaluations: AchievementTuple;
 
-  homework2: string;
-  homework2Achievement: number;
-
-  homework3: string;
-  homework3Achievement: number;
-
-  homeworkAchievement: number;
+  homeworkAchievement: number | null;
   homeworkGrade: string;
 
-  daily1: string;
-  daily1Achievement: number;
-
-  daily2: string;
-  daily2Achievement: number;
-
-  daily3: string;
-  daily3Achievement: number;
-
-  dailyAchievement: number;
+  dailyAchievement: number | null;
   dailyGrade: string;
 
   reviewTest: string;
-  reviewQuestionCount: number;
-  reviewCorrectCount: number;
-  reviewTestScore: number;
+  reviewQuestionCount: number | null;
+  reviewCorrectCount: number | null;
+  reviewTestScore: number | null;
   reviewFeedback: string;
 
   memorizationClass1: string;
   memorizationClass2: string;
-  memorizationAchievement: string;
+  memorizationAchievement: MemorizationAchievement;
 
   teacherComment: string;
   notice: string;
+}
+export interface OverallSummary {
+  homeworkAverage: number | null;
+  dailyAverage: number | null;
+  reviewAverage: number | null;
 }
