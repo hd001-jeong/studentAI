@@ -1,11 +1,13 @@
-from typing import Any
+import json
 import re
+from typing import Any
 
 import gspread
 from google.oauth2.service_account import Credentials
 
 from config import (
-    GOOGLE_CREDENTIALS,
+    GOOGLE_CREDENTIALS_FILE,
+    GOOGLE_CREDENTIALS_JSON,
     GOOGLE_SHEET_ID,
     GOOGLE_WORKSHEET,
 )
@@ -16,6 +18,32 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive",
 ]
 
+
+def create_google_credentials() -> Credentials:
+    """
+    배포 환경에서는 환경변수의 JSON을 사용하고,
+    로컬에서는 서비스 계정 JSON 파일을 사용한다.
+    """
+    if GOOGLE_CREDENTIALS_JSON:
+        credentials_info = json.loads(
+            GOOGLE_CREDENTIALS_JSON,
+        )
+
+        return Credentials.from_service_account_info(
+            credentials_info,
+            scopes=SCOPES,
+        )
+
+    if not GOOGLE_CREDENTIALS_FILE.exists():
+        raise FileNotFoundError(
+            "Google 서비스 계정 파일을 찾을 수 없습니다: "
+            f"{GOOGLE_CREDENTIALS_FILE}"
+        )
+
+    return Credentials.from_service_account_file(
+        GOOGLE_CREDENTIALS_FILE,
+        scopes=SCOPES,
+    )
 
 def to_number_or_none(value: str) -> int | None:
     """
@@ -75,11 +103,11 @@ def create_achievement_item(
 def get_spreadsheet():
     """
     서비스 계정으로 Google Spreadsheet에 접속한다.
+
+    로컬에서는 서비스 계정 JSON 파일을 사용하고,
+    배포 환경에서는 GOOGLE_CREDENTIALS_JSON 환경변수를 사용한다.
     """
-    credentials = Credentials.from_service_account_file(
-        GOOGLE_CREDENTIALS,
-        scopes=SCOPES,
-    )
+    credentials = create_google_credentials()
 
     client = gspread.authorize(credentials)
 
