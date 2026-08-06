@@ -1,14 +1,18 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from typing import Any
 
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from student_service import (
+    login_teacher,
     read_students,
-    update_homework1,
+    update_lesson_record,
 )
 
+
 app = FastAPI()
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,23 +26,96 @@ app.add_middleware(
 )
 
 
-@app.get("/students")
-def get_students():
-    return read_students()
+class TeacherLoginRequest(BaseModel):
+    teacherName: str
+    password: str
 
 
-class Homework1UpdateRequest(BaseModel):
-    achievement: int
+class AchievementItemRequest(BaseModel):
+    name: str
+    achievement: int | None = None
 
 
-@app.put(
-    "/students/{record_id}/homework1",
-)
-def update_student_homework1(
-    record_id: str,
-    request: Homework1UpdateRequest,
-):
-    return update_homework1(
-        record_id,
-        request.achievement,
+class LessonRecordUpdateRequest(BaseModel):
+    recordId: str
+
+    number: int | None = None
+    category: str = ""
+
+    weekNumber: int
+    weekLabel: str
+    progress: str
+    lessonDate: str
+
+    studentId: str
+    studentName: str
+    schoolName: str
+    grade: str
+    teacherName: str
+    teacherCode: str = ""
+
+    homeworks: list[AchievementItemRequest]
+    dailyEvaluations: list[AchievementItemRequest]
+
+    homeworkAchievement: int | None = None
+    homeworkGrade: str = ""
+
+    dailyAchievement: int | None = None
+    dailyGrade: str = ""
+
+    reviewTest: str = ""
+    reviewQuestionCount: int | None = None
+    reviewCorrectCount: int | None = None
+    reviewTestScore: int | None = None
+    reviewFeedback: str = ""
+
+    memorizationClass1: str = ""
+    memorizationClass2: str = ""
+    memorizationAchievement: str | None = None
+
+    teacherComment: str = ""
+    notice: str = ""
+
+
+@app.post("/login")
+def login(
+    request: TeacherLoginRequest,
+) -> dict[str, str]:
+    teacher = login_teacher(
+        request.teacherName,
+        request.password,
     )
+
+    if teacher is None:
+        raise HTTPException(
+            status_code=401,
+            detail="선생님 이름 또는 비밀번호가 올바르지 않습니다.",
+        )
+
+    return teacher
+
+
+@app.get("/students")
+def get_students(
+    teacherCode: str,
+):
+    return read_students(
+        teacherCode,
+    )
+
+
+@app.put("/students/{record_id}")
+def update_student_record(
+    record_id: str,
+    request: LessonRecordUpdateRequest,
+) -> dict[str, Any]:
+    try:
+        return update_lesson_record(
+            record_id,
+            request.model_dump(),
+        )
+    except ValueError as error:
+        raise HTTPException(
+            status_code=404,
+            detail=str(error),
+        ) from error

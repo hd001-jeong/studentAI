@@ -1,9 +1,11 @@
-import { Form, InputNumber, Space, Tag } from "antd";
+import { Form, InputNumber, Space, Tag, Typography } from "antd";
 
 import {
   getAchievementLabel,
   getAchievementTagColor,
 } from "@/utils/achievement";
+
+const { Text } = Typography;
 
 interface AchievementInputProps {
   score: number | null;
@@ -30,16 +32,36 @@ export default function AchievementInput({
           marginBottom: 0,
         }}
       >
-        <InputNumber
-          min={0}
-          max={100}
-          precision={0}
-          addonAfter="%"
-          placeholder="0"
+        <Space.Compact
           style={{
             width: "100%",
           }}
-        />
+        >
+          <InputNumber
+            min={0}
+            max={100}
+            precision={0}
+            placeholder="0"
+            style={{
+              width: "100%",
+            }}
+          />
+
+          <div
+            style={{
+              width: 42,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "1px solid #d9d9d9",
+              borderLeft: 0,
+              borderRadius: "0 6px 6px 0",
+              background: "#fafafa",
+            }}
+          >
+            <Text type="secondary">%</Text>
+          </div>
+        </Space.Compact>
       </Form.Item>
 
       <Tag

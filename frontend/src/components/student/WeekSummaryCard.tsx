@@ -93,7 +93,7 @@ export default function WeekSummaryCard({
       </Text>
 
       <Space
-        direction="vertical"
+        orientation="vertical"
         size={7}
         style={{
           width: "100%",

@@ -1,4 +1,11 @@
 export { default as AchievementInput } from "./AchievementInput";
 export { default as FixedAchievementSection } from "./FixedAchievementSection";
+export { default as LessonBasicInfo } from "./LessonBasicInfo";
+export { default as LessonDetailSection } from "./LessonDetailSection";
+export { default as MemorizationSection } from "./MemorizationSection";
+export { default as ReviewTestSection } from "./ReviewTestSection";
+export { default as StudentHeaderCard } from "./StudentHeaderCard";
 export { default as StudentOverallStatus } from "./StudentOverallStatus";
+export { default as TeacherCommentSection } from "./TeacherCommentSection";
 export { default as WeekSummaryCard } from "./WeekSummaryCard";
+export { default as WeekSummarySection } from "./WeekSummarySection";

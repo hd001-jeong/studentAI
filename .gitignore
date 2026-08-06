@@ -3,3 +3,5 @@ backend/venv/
 backend/__pycache__/
 backend/credentials/
 frontend/node_modules/
+start-backend.bat
+start-frontend.bat
