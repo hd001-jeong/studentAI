@@ -8,20 +8,111 @@ import {
   Typography,
 } from "antd";
 import type { TableColumnsType } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import StudentApi from "../../api/StudentApi";
 import type { LessonRecord } from "../../types/lessonRecord";
-import type { Student } from "../../types/student";
 
-const { Title, Paragraph } = Typography;
+const { Title } = Typography;
+
+interface StudentSummary {
+  studentId: string;
+  studentName: string;
+  schoolName: string;
+  grade: string;
+  teacherName: string;
+}
+
+function formatScore(value: number | null | undefined): string {
+  return value == null ? "-" : `${value}점`;
+}
+
+function formatText(value: string | null | undefined): string {
+  return value?.trim() || "-";
+}
 
 function StudentPage() {
-  const [students, setStudents] = useState<Student[]>([]);
+  const [allLessonRecords, setAllLessonRecords] = useState<LessonRecord[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState<string>();
-  const [selectedStudent, setSelectedStudent] = useState<Student>();
-  const [lessonRecords, setLessonRecords] = useState<LessonRecord[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const teacherCode = localStorage.getItem("teacherCode") ?? "";
+
+  useEffect(() => {
+    const loadLessonRecords = async () => {
+      if (!teacherCode) {
+        setAllLessonRecords([]);
+        setSelectedStudentId(undefined);
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const records = await StudentApi.getLessonRecords(teacherCode);
+
+        setAllLessonRecords(records);
+
+        if (records.length > 0) {
+          setSelectedStudentId((currentStudentId) => {
+            const currentStudentExists = records.some(
+              (record) => record.studentId === currentStudentId,
+            );
+
+            return currentStudentExists
+              ? currentStudentId
+              : records[0].studentId;
+          });
+        } else {
+          setSelectedStudentId(undefined);
+        }
+      } catch (error) {
+        console.error("수업 기록 조회 실패:", error);
+        setAllLessonRecords([]);
+        setSelectedStudentId(undefined);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadLessonRecords();
+  }, [teacherCode]);
+
+  const students = useMemo<StudentSummary[]>(() => {
+    const studentMap = new Map<string, StudentSummary>();
+
+    allLessonRecords.forEach((record) => {
+      if (studentMap.has(record.studentId)) {
+        return;
+      }
+
+      studentMap.set(record.studentId, {
+        studentId: record.studentId,
+        studentName: record.studentName,
+        schoolName: record.schoolName,
+        grade: record.grade,
+        teacherName: record.teacherName,
+      });
+    });
+
+    return Array.from(studentMap.values());
+  }, [allLessonRecords]);
+
+  const selectedStudent = useMemo(
+    () => students.find((student) => student.studentId === selectedStudentId),
+    [selectedStudentId, students],
+  );
+
+  const lessonRecords = useMemo(
+    () =>
+      allLessonRecords
+        .filter((record) => record.studentId === selectedStudentId)
+        .sort(
+          (a, b) =>
+            new Date(b.lessonDate).getTime() - new Date(a.lessonDate).getTime(),
+        ),
+    [allLessonRecords, selectedStudentId],
+  );
 
   const lessonColumns: TableColumnsType<LessonRecord> = [
     {
@@ -29,88 +120,55 @@ function StudentPage() {
       dataIndex: "number",
       key: "number",
       width: 70,
+      render: (value: number | null | undefined) => value ?? "-",
     },
     {
       title: "구분",
       dataIndex: "category",
       key: "category",
       width: 110,
+      render: formatText,
     },
     {
       title: "주차",
-      dataIndex: "week",
-      key: "week",
+      dataIndex: "weekLabel",
+      key: "weekLabel",
       width: 100,
+      render: formatText,
     },
     {
       title: "수업일",
       dataIndex: "lessonDate",
       key: "lessonDate",
       width: 120,
+      render: formatText,
     },
     {
       title: "진도",
       dataIndex: "progress",
       key: "progress",
-      width: 130,
+      width: 160,
+      render: formatText,
     },
-    {
-      title: "숙제 1",
+    ...[0, 1, 2].map((index) => ({
+      title: `숙제 ${index + 1}`,
       children: [
         {
           title: "내용",
-          dataIndex: "homework1",
-          key: "homework1",
+          key: `homework-${index}-name`,
           width: 220,
-          render: (value: string) => value || "-",
+          render: (_: unknown, record: LessonRecord) =>
+            formatText(record.homeworks[index]?.name),
         },
         {
           title: "성취도",
-          dataIndex: "homework1Achievement",
-          key: "homework1Achievement",
+          key: `homework-${index}-achievement`,
           width: 90,
-          render: (value: number) => `${value}점`,
+          render: (_: unknown, record: LessonRecord) =>
+            formatScore(record.homeworks[index]?.achievement),
         },
       ],
-    },
-    {
-      title: "숙제 2",
-      children: [
-        {
-          title: "내용",
-          dataIndex: "homework2",
-          key: "homework2",
-          width: 180,
-          render: (value: string) => value || "-",
-        },
-        {
-          title: "성취도",
-          dataIndex: "homework2Achievement",
-          key: "homework2Achievement",
-          width: 90,
-          render: (value: number) => `${value}점`,
-        },
-      ],
-    },
-    {
-      title: "숙제 3",
-      children: [
-        {
-          title: "내용",
-          dataIndex: "homework3",
-          key: "homework3",
-          width: 180,
-          render: (value: string) => value || "-",
-        },
-        {
-          title: "성취도",
-          dataIndex: "homework3Achievement",
-          key: "homework3Achievement",
-          width: 90,
-          render: (value: number) => `${value}점`,
-        },
-      ],
-    },
+    })),
     {
       title: "숙제 종합",
       children: [
@@ -119,14 +177,14 @@ function StudentPage() {
           dataIndex: "homeworkAchievement",
           key: "homeworkAchievement",
           width: 90,
-          render: (value: number) => `${value}점`,
+          render: formatScore,
         },
         {
           title: "등급",
           dataIndex: "homeworkGrade",
           key: "homeworkGrade",
           width: 90,
-          render: (value: string) => value || "-",
+          render: formatText,
         },
       ],
     },
@@ -139,64 +197,27 @@ function StudentPage() {
       key: "lessonDate",
       width: 120,
       fixed: "left",
+      render: formatText,
     },
-    {
-      title: "당일 1",
+    ...[0, 1, 2].map((index) => ({
+      title: `당일 ${index + 1}`,
       children: [
         {
           title: "내용",
-          dataIndex: "daily1",
-          key: "daily1",
-          width: 170,
-          render: (value: string) => value || "-",
+          key: `daily-${index}-name`,
+          width: 180,
+          render: (_: unknown, record: LessonRecord) =>
+            formatText(record.dailyEvaluations[index]?.name),
         },
         {
           title: "성취도",
-          dataIndex: "daily1Achievement",
-          key: "daily1Achievement",
+          key: `daily-${index}-achievement`,
           width: 90,
-          render: (value: number) => `${value}점`,
+          render: (_: unknown, record: LessonRecord) =>
+            formatScore(record.dailyEvaluations[index]?.achievement),
         },
       ],
-    },
-    {
-      title: "당일 2",
-      children: [
-        {
-          title: "내용",
-          dataIndex: "daily2",
-          key: "daily2",
-          width: 150,
-          render: (value: string) => value || "-",
-        },
-        {
-          title: "성취도",
-          dataIndex: "daily2Achievement",
-          key: "daily2Achievement",
-          width: 90,
-          render: (value: number) => `${value}점`,
-        },
-      ],
-    },
-    {
-      title: "당일 3",
-      children: [
-        {
-          title: "내용",
-          dataIndex: "daily3",
-          key: "daily3",
-          width: 150,
-          render: (value: string) => value || "-",
-        },
-        {
-          title: "성취도",
-          dataIndex: "daily3Achievement",
-          key: "daily3Achievement",
-          width: 90,
-          render: (value: number) => `${value}점`,
-        },
-      ],
-    },
+    })),
     {
       title: "당일 종합",
       children: [
@@ -205,14 +226,14 @@ function StudentPage() {
           dataIndex: "dailyAchievement",
           key: "dailyAchievement",
           width: 90,
-          render: (value: number) => `${value}점`,
+          render: formatScore,
         },
         {
           title: "등급",
           dataIndex: "dailyGrade",
           key: "dailyGrade",
           width: 90,
-          render: (value: string) => value || "-",
+          render: formatText,
         },
       ],
     },
@@ -224,33 +245,35 @@ function StudentPage() {
           dataIndex: "reviewTest",
           key: "reviewTest",
           width: 140,
-          render: (value: string) => value || "-",
+          render: formatText,
         },
         {
           title: "문항 수",
           dataIndex: "reviewQuestionCount",
           key: "reviewQuestionCount",
           width: 90,
+          render: (value: number | null | undefined) => value ?? "-",
         },
         {
           title: "정답 수",
           dataIndex: "reviewCorrectCount",
           key: "reviewCorrectCount",
           width: 90,
+          render: (value: number | null | undefined) => value ?? "-",
         },
         {
           title: "점수",
           dataIndex: "reviewTestScore",
           key: "reviewTestScore",
           width: 80,
-          render: (value: number) => `${value}점`,
+          render: formatScore,
         },
         {
           title: "피드백",
           dataIndex: "reviewFeedback",
           key: "reviewFeedback",
-          width: 170,
-          render: (value: string) => value || "-",
+          width: 180,
+          render: formatText,
         },
       ],
     },
@@ -262,21 +285,21 @@ function StudentPage() {
           dataIndex: "memorizationClass1",
           key: "memorizationClass1",
           width: 180,
-          render: (value: string) => value || "-",
+          render: formatText,
         },
         {
           title: "암기반 2",
           dataIndex: "memorizationClass2",
           key: "memorizationClass2",
           width: 180,
-          render: (value: string) => value || "-",
+          render: formatText,
         },
         {
           title: "결과",
           dataIndex: "memorizationAchievement",
           key: "memorizationAchievement",
           width: 110,
-          render: (value: string) => value || "-",
+          render: formatText,
         },
       ],
     },
@@ -285,59 +308,19 @@ function StudentPage() {
       dataIndex: "teacherComment",
       key: "teacherComment",
       width: 350,
-      render: (value: string) => value || "-",
+      render: formatText,
     },
     {
       title: "Notice",
       dataIndex: "notice",
       key: "notice",
       width: 350,
-      render: (value: string) => value || "-",
+      render: formatText,
     },
   ];
 
-  useEffect(() => {
-    const loadStudents = async () => {
-      setLoading(true);
-
-      try {
-        const result = await StudentApi.getStudents();
-        setStudents(result);
-      } catch (error) {
-        console.error("학생 목록 조회 실패:", error);
-        setStudents([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadStudents();
-  }, []);
-
-  const handleStudentChange = async (studentId: string) => {
+  const handleStudentChange = (studentId: string) => {
     setSelectedStudentId(studentId);
-    setLoading(true);
-
-    try {
-      const student = students.find((item) => item.studentId === studentId);
-
-      const records = await StudentApi.getStudentRecords(studentId);
-
-      setSelectedStudent(student);
-
-      const sortedRecords = [...records].sort(
-        (a, b) =>
-          new Date(b.lessonDate).getTime() - new Date(a.lessonDate).getTime(),
-      );
-
-      setLessonRecords(sortedRecords);
-    } catch (error) {
-      console.error("수업 기록 조회 실패:", error);
-      setSelectedStudent(undefined);
-      setLessonRecords([]);
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
@@ -361,7 +344,11 @@ function StudentPage() {
 
           {selectedStudent && (
             <Card title="학생 정보">
-              <Descriptions column={3} bordered size="small">
+              <Descriptions
+                column={{ xs: 1, sm: 2, lg: 3 }}
+                bordered
+                size="small"
+              >
                 <Descriptions.Item label="학생 ID">
                   {selectedStudent.studentId}
                 </Descriptions.Item>
@@ -390,9 +377,7 @@ function StudentPage() {
               <Title level={4}>수업 및 숙제 기록</Title>
 
               <Table<LessonRecord>
-                rowKey={(record) =>
-                  `lesson-${record.studentId}-${record.number}-${record.lessonDate}`
-                }
+                rowKey="recordId"
                 columns={lessonColumns}
                 dataSource={lessonRecords}
                 loading={loading}
@@ -410,9 +395,7 @@ function StudentPage() {
               </Title>
 
               <Table<LessonRecord>
-                rowKey={(record) =>
-                  `evaluation-${record.studentId}-${record.number}-${record.lessonDate}`
-                }
+                rowKey="recordId"
                 columns={evaluationColumns}
                 dataSource={lessonRecords}
                 loading={loading}

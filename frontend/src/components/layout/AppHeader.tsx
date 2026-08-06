@@ -1,5 +1,5 @@
 import { Button, Layout, Space, Typography } from "antd";
-import { LogoutOutlined, SaveOutlined } from "@ant-design/icons";
+import { LogoutOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
 const { Header } = Layout;
