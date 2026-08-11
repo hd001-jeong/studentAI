@@ -1,5 +1,6 @@
 import ApiClient from "./ApiClient";
-import type { LessonRecord } from "@/types/lessonRecord";
+
+import type { LessonRecord, StudentSummary } from "@/types/lessonRecord";
 
 interface TeacherLoginRequest {
   teacherName: string;
@@ -21,10 +22,13 @@ class StudentApi {
     return response.data;
   }
 
-  async getLessonRecords(teacherCode: string): Promise<LessonRecord[]> {
-    const response = await ApiClient.get<LessonRecord[]>("/students", {
+  /**
+   * 학생 Select 목록 조회
+   */
+  async getStudents(teacherName: string): Promise<StudentSummary[]> {
+    const response = await ApiClient.get<StudentSummary[]>("/students", {
       params: {
-        teacherCode,
+        teacherName,
       },
     });
 
@@ -32,7 +36,26 @@ class StudentApi {
   }
 
   /**
-   * 선택한 한 주차의 전체 수업 기록을 수정한다.
+   * 선택한 학생의 수업 기록 조회
+   */
+  async getLessonRecords(
+    teacherName: string,
+    studentId: string,
+  ): Promise<LessonRecord[]> {
+    const response = await ApiClient.get<LessonRecord[]>(
+      `/students/${studentId}/records`,
+      {
+        params: {
+          teacherName,
+        },
+      },
+    );
+
+    return response.data;
+  }
+
+  /**
+   * 선택한 한 주차의 전체 수업 기록 수정
    */
   async updateLessonRecord(
     recordId: string,

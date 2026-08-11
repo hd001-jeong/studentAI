@@ -5,12 +5,12 @@ import StudentPage from "@/pages/Student/StudentPage";
 import { TeacherLoginPage } from "@/pages/Teacher";
 
 const router = createBrowserRouter([
+  // {
+  //   path: "/",
+  //   element: <TeacherLoginPage />,
+  // },
   {
     path: "/",
-    element: <TeacherLoginPage />,
-  },
-  {
-    path: "/dashboard",
     element: <StudentDashboardPage />,
   },
   {

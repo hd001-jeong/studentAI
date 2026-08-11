@@ -1,6 +1,8 @@
 import { Card, Col, Row, Typography } from "antd";
-import type { LessonRecord } from "@/types/lessonRecord";
+
 import WeekSummaryCard from "@/components/student/WeekSummaryCard";
+
+import type { LessonRecord } from "@/types/lessonRecord";
 
 const { Text } = Typography;
 
@@ -24,7 +26,7 @@ function WeekSummarySection({
             fontSize: 19,
           }}
         >
-          1~8주 학습 현황
+          학습 현황
         </Text>
       }
       styles={{

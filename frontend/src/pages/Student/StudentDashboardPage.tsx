@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+
 import { Card, Form, Layout, Spin, Typography, message } from "antd";
 
 import StudentApi from "@/api/StudentApi";
@@ -17,7 +18,12 @@ import {
   WeekSummarySection,
 } from "@/components/student";
 
-import { TEACHER_COMMENT_MAX_LENGTH } from "@/constants/studentConstants";
+import {
+  DEFAULT_WEEK_RECORDS,
+  TEACHER_COMMENT_MAX_LENGTH,
+} from "@/constants/studentConstants";
+
+import { useStudentsQuery } from "@/hooks/useStudentsQuery";
 import { useLessonRecordsQuery } from "@/hooks/useLessonRecordsQuery";
 
 import type {
@@ -33,7 +39,7 @@ import {
 const { Content } = Layout;
 const { Text } = Typography;
 
-const EMPTY_LESSON_RECORDS: LessonRecord[] = [];
+const TEACHER_NAME = "박현민";
 
 const centeredPageStyle = {
   minHeight: "100vh",
@@ -44,65 +50,158 @@ const centeredPageStyle = {
 };
 
 export default function StudentDashboardPage() {
-  const teacherCode = localStorage.getItem("teacherCode") ?? "";
-
   const [saving, setSaving] = useState(false);
-
-  const teacherName = localStorage.getItem("teacherName");
-  /*
-   * 화면에서 수정 중인 데이터
-   */
-  const [lessonRecords, setLessonRecords] = useState<LessonRecord[]>([]);
-
-  const [selectedStudentId, setSelectedStudentId] = useState("");
-  const [selectedRecordId, setSelectedRecordId] = useState("");
-
-  const [form] = Form.useForm<LessonRecord>();
-  const [messageApi, contextHolder] = message.useMessage();
 
   const [selectedGrade, setSelectedGrade] = useState("ALL");
 
+  const [selectedStudentId, setSelectedStudentId] = useState("");
+
+  const [selectedRecordId, setSelectedRecordId] = useState("DEFAULT_WEEK_1");
+
+  const [form] = Form.useForm<LessonRecord>();
+
+  const [messageApi, contextHolder] = message.useMessage();
+
   /*
-   * 수업 기록 조회
+   * 학생 Select 목록 조회
    */
-  const { data, isLoading, isError, error } =
-    useLessonRecordsQuery(teacherCode);
-
-  const fetchedLessonRecords = data ?? EMPTY_LESSON_RECORDS;
+  const {
+    data: students = [],
+    isLoading: isStudentsLoading,
+    isError: isStudentsError,
+    error: studentsError,
+  } = useStudentsQuery(TEACHER_NAME);
 
   /*
-   * 조회 결과를 화면 상태에 반영
+   * 선택한 학생의 수업 기록 조회
+   *
+   * selectedStudentId가 빈 값이면
+   * useLessonRecordsQuery 내부에서 조회하지 않는다.
+   */
+  const {
+    data: fetchedLessonRecords = [],
+    isLoading: isRecordsLoading,
+    isError: isRecordsError,
+  } = useLessonRecordsQuery(TEACHER_NAME, selectedStudentId);
+
+  /*
+   * 최초 진입:
+   * DEFAULT 1~4주차
+   *
+   * 학생 선택 후:
+   * 실제 Google Sheet 데이터
+   */
+  const displayedRecords = useMemo(() => {
+    if (selectedStudentId && fetchedLessonRecords.length > 0) {
+      return [...fetchedLessonRecords].sort(
+        (a, b) => a.weekNumber - b.weekNumber,
+      );
+    }
+
+    return DEFAULT_WEEK_RECORDS;
+  }, [selectedStudentId, fetchedLessonRecords]);
+
+  /*
+   * 학년 목록
+   */
+  const gradeOptions = useMemo(() => {
+    const grades = Array.from(
+      new Set(students.map((student) => student.grade).filter(Boolean)),
+    );
+
+    return [
+      {
+        value: "ALL",
+        label: "전체",
+      },
+
+      ...grades.map((grade) => ({
+        value: grade,
+        label: grade,
+      })),
+    ];
+  }, [students]);
+
+  /*
+   * 학생 목록
+   */
+  const studentOptions = useMemo(() => {
+    return students
+      .filter((student) => {
+        if (selectedGrade === "ALL") {
+          return true;
+        }
+
+        return student.grade === selectedGrade;
+      })
+      .map((student) => ({
+        value: student.studentId,
+
+        label:
+          `${student.studentName} ` +
+          `(${student.schoolName}/${student.grade})`,
+      }));
+  }, [students, selectedGrade]);
+
+  /*
+   * 학생 변경
+   */
+  const handleStudentChange = (studentId: string) => {
+    setSelectedStudentId(studentId);
+
+    /*
+     * 조회가 끝날 때까지
+     * 기본 1주차 표시
+     */
+    setSelectedRecordId("DEFAULT_WEEK_1");
+  };
+
+  /*
+   * 학년 변경
+   *
+   * 학년만 변경하고
+   * 학생을 자동 선택하지 않는다.
+   */
+  const handleGradeChange = (grade: string) => {
+    setSelectedGrade(grade);
+
+    setSelectedStudentId("");
+
+    setSelectedRecordId("DEFAULT_WEEK_1");
+  };
+
+  /*
+   * 학생 기록 조회 완료 후
+   * 첫 번째 실제 기록 선택
    */
   useEffect(() => {
-    setLessonRecords(fetchedLessonRecords);
-
-    if (fetchedLessonRecords.length === 0) {
-      setSelectedStudentId("");
-      setSelectedRecordId("");
+    if (!selectedStudentId) {
       return;
     }
 
-    const firstRecord = fetchedLessonRecords[0];
+    if (fetchedLessonRecords.length === 0) {
+      return;
+    }
 
-    setSelectedStudentId((currentStudentId) => {
-      const studentExists = fetchedLessonRecords.some(
-        (record) => record.studentId === currentStudentId,
-      );
+    const sortedRecords = [...fetchedLessonRecords].sort(
+      (a, b) => a.weekNumber - b.weekNumber,
+    );
 
-      return studentExists ? currentStudentId : firstRecord.studentId;
-    });
-
-    setSelectedRecordId((currentRecordId) => {
-      const recordExists = fetchedLessonRecords.some(
-        (record) => record.recordId === currentRecordId,
-      );
-
-      return recordExists ? currentRecordId : firstRecord.recordId;
-    });
-  }, [fetchedLessonRecords]);
+    setSelectedRecordId(sortedRecords[0].recordId);
+  }, [selectedStudentId, fetchedLessonRecords]);
 
   /*
-   * Form 감시값
+   * 현재 선택된 주차
+   */
+  const selectedRecord = useMemo(() => {
+    return (
+      displayedRecords.find((record) => record.recordId === selectedRecordId) ??
+      displayedRecords[0]
+    );
+  }, [displayedRecords, selectedRecordId]);
+
+  /*
+   * Form 감시
    */
   const reviewQuestionCount =
     Form.useWatch("reviewQuestionCount", form) ?? null;
@@ -124,106 +223,6 @@ export default function StudentDashboardPage() {
 
     form.setFieldValue("reviewTestScore", score);
   }, [form, reviewQuestionCount, reviewCorrectCount]);
-
-  /*
-   * 학생 선택 목록
-   */
-  const studentOptions = useMemo(() => {
-    const studentMap = new Map<
-      string,
-      {
-        value: string;
-        label: string;
-        grade: string;
-      }
-    >();
-
-    lessonRecords.forEach((record) => {
-      if (studentMap.has(record.studentId)) {
-        return;
-      }
-
-      studentMap.set(record.studentId, {
-        value: record.studentId,
-        label: `${record.studentName} (${record.schoolName}/${record.grade})`,
-        grade: record.grade,
-      });
-    });
-
-    return Array.from(studentMap.values());
-  }, [lessonRecords]);
-
-  const gradeOptions = useMemo(() => {
-    const grades = Array.from(
-      new Set(studentOptions.map((student) => student.grade)),
-    );
-
-    return [
-      {
-        value: "ALL",
-        label: "전체",
-      },
-      ...grades.map((grade) => ({
-        value: grade,
-        label: grade,
-      })),
-    ];
-  }, [studentOptions]);
-
-  const filteredStudentOptions = useMemo(() => {
-    if (!selectedGrade || selectedGrade === "ALL") {
-      return studentOptions;
-    }
-
-    return studentOptions.filter((student) => student.grade === selectedGrade);
-  }, [selectedGrade, studentOptions]);
-
-  const handleGradeChange = (grade: string) => {
-    setSelectedGrade(grade);
-
-    const firstStudent =
-      grade === "ALL"
-        ? studentOptions[0]
-        : studentOptions.find((student) => student.grade === grade);
-
-    if (!firstStudent) {
-      setSelectedStudentId("");
-      setSelectedRecordId("");
-      return;
-    }
-
-    handleStudentChange(firstStudent.value);
-  };
-
-  /*
-   * 선택 학생의 수업 기록
-   */
-  const selectedStudentRecords = useMemo(
-    () =>
-      lessonRecords
-        .filter((record) => record.studentId === selectedStudentId)
-        .sort((a, b) => a.weekNumber - b.weekNumber),
-    [lessonRecords, selectedStudentId],
-  );
-
-  /*
-   * 선택 주차 기록
-   */
-  const selectedRecord = useMemo(
-    () =>
-      selectedStudentRecords.find(
-        (record) => record.recordId === selectedRecordId,
-      ) ?? selectedStudentRecords[0],
-    [selectedRecordId, selectedStudentRecords],
-  );
-
-  /*
-   * 전체 평균
-   */
-  const overallSummary = useMemo(
-    () => calculateOverallSummary(selectedStudentRecords),
-    [selectedStudentRecords],
-  );
 
   /*
    * 선택 주차를 Form에 표시
@@ -248,23 +247,35 @@ export default function StudentDashboardPage() {
   }, [form, selectedRecord]);
 
   /*
-   * 학생 변경
+   * 전체 평균
+   *
+   * 학생 선택 전에는 빈 값
    */
-  const handleStudentChange = (studentId: string) => {
-    setSelectedStudentId(studentId);
+  const overallSummary = useMemo(() => {
+    if (!selectedStudentId) {
+      return calculateOverallSummary([]);
+    }
 
-    const firstRecord = lessonRecords
-      .filter((record) => record.studentId === studentId)
-      .sort((a, b) => a.weekNumber - b.weekNumber)[0];
-
-    setSelectedRecordId(firstRecord?.recordId ?? "");
-  };
+    return calculateOverallSummary(fetchedLessonRecords);
+  }, [selectedStudentId, fetchedLessonRecords]);
 
   /*
-   * 선택 주차 저장
+   * 저장
    */
   const handleSave = async () => {
+    /*
+     * 학생 선택 전 기본 템플릿은
+     * 저장하지 않는다.
+     */
+    if (!selectedStudentId) {
+      return;
+    }
+
     if (!selectedRecord) {
+      return;
+    }
+
+    if (selectedRecord.recordId.startsWith("DEFAULT_")) {
       return;
     }
 
@@ -278,11 +289,17 @@ export default function StudentDashboardPage() {
         ...values,
 
         recordId: selectedRecord.recordId,
+
         studentId: selectedRecord.studentId,
+
         studentName: selectedRecord.studentName,
+
         schoolName: selectedRecord.schoolName,
+
         grade: selectedRecord.grade,
+
         teacherName: selectedRecord.teacherName,
+
         weekNumber: selectedRecord.weekNumber,
 
         reviewTestScore: calculateReviewScore(
@@ -301,13 +318,9 @@ export default function StudentDashboardPage() {
         updatedRecord,
       );
 
-      setLessonRecords((records) =>
-        records.map((record) =>
-          record.recordId === savedRecord.recordId ? savedRecord : record,
-        ),
-      );
+      form.setFieldsValue(savedRecord);
 
-      messageApi.success(`${savedRecord.weekNumber}주차 기록을 저장했습니다.`);
+      messageApi.success(`${savedRecord.weekLabel} 기록을 저장했습니다.`);
     } catch (saveError) {
       console.error("수업 기록 저장 실패", saveError);
 
@@ -317,7 +330,10 @@ export default function StudentDashboardPage() {
     }
   };
 
-  if (isLoading) {
+  /*
+   * 학생 목록 최초 조회 중
+   */
+  if (isStudentsLoading) {
     return (
       <div style={centeredPageStyle}>
         <div
@@ -330,35 +346,32 @@ export default function StudentDashboardPage() {
         >
           <Spin size="large" />
 
-          <Text type="secondary">수업 기록을 불러오는 중입니다.</Text>
+          <Text type="secondary">학생 목록을 불러오는 중입니다.</Text>
         </div>
       </div>
     );
   }
 
-  if (isError) {
+  /*
+   * 학생 목록 조회 실패
+   */
+  if (isStudentsError) {
     return (
       <div style={centeredPageStyle}>
         <Card>
-          <Text type="danger">수업 기록을 불러오지 못했습니다.</Text>
+          <Text type="danger">학생 목록을 불러오지 못했습니다.</Text>
 
-          <div style={{ marginTop: 8 }}>
+          <div
+            style={{
+              marginTop: 8,
+            }}
+          >
             <Text type="secondary">
-              {error instanceof Error
-                ? error.message
+              {studentsError instanceof Error
+                ? studentsError.message
                 : "알 수 없는 오류가 발생했습니다."}
             </Text>
           </div>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!selectedRecord) {
-    return (
-      <div style={centeredPageStyle}>
-        <Card>
-          <Text type="secondary">표시할 수업 기록이 없습니다.</Text>
         </Card>
       </div>
     );
@@ -368,8 +381,12 @@ export default function StudentDashboardPage() {
     <>
       {contextHolder}
 
-      <Layout style={{ minHeight: "100vh" }}>
-        <AppHeader teacherName={teacherName} />
+      <Layout
+        style={{
+          minHeight: "100vh",
+        }}
+      >
+        <AppHeader teacherName={TEACHER_NAME} />
 
         <Content
           style={{
@@ -389,54 +406,95 @@ export default function StudentDashboardPage() {
                 selectedGrade={selectedGrade}
                 gradeOptions={gradeOptions}
                 selectedStudentId={selectedStudentId}
-                studentOptions={filteredStudentOptions}
+                studentOptions={studentOptions}
                 selectedRecord={selectedRecord}
                 onGradeChange={handleGradeChange}
                 onStudentChange={handleStudentChange}
               />
 
-              <WeekSummarySection
-                records={selectedStudentRecords}
-                selectedRecordId={selectedRecord.recordId}
-                onRecordChange={setSelectedRecordId}
-              />
+              {isRecordsLoading ? (
+                <Card
+                  style={{
+                    marginTop: 12,
+                  }}
+                >
+                  <Spin />
 
-              <StudentOverallStatus summary={overallSummary} />
-
-              <LessonDetailSection
-                weekNumber={selectedRecord.weekNumber}
-                saving={saving}
-                onSave={handleSave}
-              >
-                <LessonBasicInfo />
-
-                <FixedAchievementSection
-                  form={form}
-                  fieldName="homeworks"
-                  title="숙제"
-                  itemTitle="숙제"
-                  inputLabel="숙제 내용"
-                />
-
-                <div style={{ marginTop: 10 }}>
-                  <FixedAchievementSection
-                    form={form}
-                    fieldName="dailyEvaluations"
-                    title="당일 평가"
-                    itemTitle="당일 평가"
-                    inputLabel="평가 내용"
+                  <Text
+                    type="secondary"
+                    style={{
+                      marginLeft: 10,
+                    }}
+                  >
+                    학생 수업 기록을 불러오는 중입니다.
+                  </Text>
+                </Card>
+              ) : (
+                <>
+                  <WeekSummarySection
+                    records={displayedRecords}
+                    selectedRecordId={selectedRecord.recordId}
+                    onRecordChange={setSelectedRecordId}
                   />
-                </div>
 
-                <ReviewTestSection
-                  reviewScore={reviewScore}
-                  reviewQuestionCount={reviewQuestionCount}
-                />
+                  <StudentOverallStatus summary={overallSummary} />
 
-                <MemorizationSection achievement={memorizationAchievement} />
+                  <LessonDetailSection
+                    weekLabel={selectedRecord.weekLabel}
+                    saving={saving}
+                    onSave={handleSave}
+                  >
+                    <LessonBasicInfo />
 
-                <TeacherCommentSection maxLength={TEACHER_COMMENT_MAX_LENGTH} />
-              </LessonDetailSection>
+                    <FixedAchievementSection
+                      form={form}
+                      fieldName="homeworks"
+                      title="숙제"
+                      itemTitle="숙제"
+                      inputLabel="숙제 내용"
+                    />
+
+                    <div
+                      style={{
+                        marginTop: 10,
+                      }}
+                    >
+                      <FixedAchievementSection
+                        form={form}
+                        fieldName="dailyEvaluations"
+                        title="당일 평가"
+                        itemTitle="당일 평가"
+                        inputLabel="평가 내용"
+                      />
+                    </div>
+
+                    <ReviewTestSection
+                      reviewScore={reviewScore}
+                      reviewQuestionCount={reviewQuestionCount}
+                    />
+
+                    <MemorizationSection
+                      achievement={memorizationAchievement}
+                    />
+
+                    <TeacherCommentSection
+                      maxLength={TEACHER_COMMENT_MAX_LENGTH}
+                    />
+                  </LessonDetailSection>
+                </>
+              )}
+
+              {isRecordsError && (
+                <Card
+                  style={{
+                    marginTop: 12,
+                  }}
+                >
+                  <Text type="danger">
+                    선택한 학생의 수업 기록을 불러오지 못했습니다.
+                  </Text>
+                </Card>
+              )}
             </Form>
           </div>
         </Content>

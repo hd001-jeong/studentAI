@@ -65,12 +65,7 @@ function StudentHeaderCard({
             value={selectedStudentId || undefined}
             options={studentOptions}
             onChange={onStudentChange}
-            placeholder={
-              selectedGrade
-                ? "학생을 선택해주세요."
-                : "학년을 먼저 선택해주세요."
-            }
-            disabled={!selectedGrade}
+            placeholder="학생을 선택해주세요."
             style={{
               width: "100%",
               marginTop: 6,
@@ -78,10 +73,10 @@ function StudentHeaderCard({
           />
         </Col>
 
-        {/* 학생 기본정보 */}
+        {/* 학생 기본 정보 */}
         <Col xs={24} lg={7}>
           <Space>
-            <Avatar size={42}>{selectedRecord.studentName.charAt(0)}</Avatar>
+            <Avatar size={42}>{selectedRecord.studentName?.charAt(0)}</Avatar>
 
             <div>
               <Text
@@ -111,14 +106,25 @@ function StudentHeaderCard({
           </Space>
         </Col>
 
-        {/* 현재 선택 주차 */}
+        {/* 현재 선택 수업 정보 */}
         <Col xs={24} lg={7}>
           <div
             style={{
               display: "flex",
               justifyContent: "flex-end",
+              gap: 6,
             }}
           >
+            <Tag
+              style={{
+                padding: "5px 12px",
+                fontSize: 14,
+                margin: 0,
+              }}
+            >
+              {selectedRecord.category}
+            </Tag>
+
             <Tag
               color="blue"
               style={{
@@ -127,7 +133,7 @@ function StudentHeaderCard({
                 margin: 0,
               }}
             >
-              {selectedRecord.weekNumber}주차 · {selectedRecord.weekLabel}
+              {selectedRecord.weekLabel}
             </Tag>
           </div>
         </Col>

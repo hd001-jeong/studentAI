@@ -1,6 +1,6 @@
 import { Card, Col, Row, Tag, Typography } from "antd";
 
-import type { OverallSummary } from "@/types/student";
+import type { OverallSummary } from "@/types/lessonRecord";
 
 import {
   getAchievementBackground,

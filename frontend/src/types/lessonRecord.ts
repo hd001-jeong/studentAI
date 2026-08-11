@@ -9,8 +9,27 @@ export type AchievementTuple = [
   AchievementItem,
 ];
 
-export type MemorizationAchievement = "통과" | "보충 필요" | "결석" | null;
+export type MemorizationAchievement =
+  | "통과"
+  | "보충 필요"
+  | "결석"
+  | "조퇴"
+  | null;
 
+/**
+ * 학생 Select 목록용
+ */
+export interface StudentSummary {
+  studentId: string;
+  studentName: string;
+  schoolName: string;
+  grade: string;
+  teacherName: string;
+}
+
+/**
+ * 학생 수업 기록
+ */
 export interface LessonRecord {
   recordId: string;
 
@@ -50,6 +69,10 @@ export interface LessonRecord {
   teacherComment: string;
   notice: string;
 }
+
+/**
+ * 학생 전체 평균
+ */
 export interface OverallSummary {
   homeworkAverage: number | null;
   dailyAverage: number | null;

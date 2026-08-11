@@ -9,7 +9,12 @@ export type AchievementTuple = [
   AchievementItem,
 ];
 
-export type MemorizationAchievement = "통과" | "보충 필요" | "결석" | null;
+export type MemorizationAchievement =
+  | "통과"
+  | "보충 필요"
+  | "결석"
+  | "조퇴"
+  | null;
 
 export interface LessonRecord {
   recordId: string;

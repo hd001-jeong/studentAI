@@ -1,18 +1,19 @@
 import type { ReactNode } from "react";
+
 import { SaveOutlined } from "@ant-design/icons";
 import { Button, Card, Typography } from "antd";
 
 const { Text } = Typography;
 
 interface LessonDetailSectionProps {
-  weekNumber: number;
+  weekLabel: string;
   saving: boolean;
   onSave: () => void;
   children: ReactNode;
 }
 
 function LessonDetailSection({
-  weekNumber,
+  weekLabel,
   saving,
   onSave,
   children,
@@ -26,7 +27,7 @@ function LessonDetailSection({
             fontSize: 19,
           }}
         >
-          {weekNumber}주차 상세 입력
+          {weekLabel} 상세 입력
         </Text>
       }
       extra={
