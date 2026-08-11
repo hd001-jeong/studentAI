@@ -1,8 +1,8 @@
 import { createBrowserRouter } from "react-router-dom";
 
 import StudentDashboardPage from "@/pages/Student/StudentDashboardPage";
-import StudentPage from "@/pages/Student/StudentPage";
-import { TeacherLoginPage } from "@/pages/Teacher";
+// import StudentPage from "@/pages/Student/StudentPage";
+// import { TeacherLoginPage } from "@/pages/Teacher";
 
 const router = createBrowserRouter([
   // {
@@ -13,10 +13,10 @@ const router = createBrowserRouter([
     path: "/",
     element: <StudentDashboardPage />,
   },
-  {
-    path: "/student",
-    element: <StudentPage />,
-  },
+  // {
+  //   path: "/student",
+  //   element: <StudentPage />,
+  // },
 ]);
 
 export default router;
