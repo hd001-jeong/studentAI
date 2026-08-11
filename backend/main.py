@@ -1,4 +1,5 @@
 from typing import Any
+
 from config import FRONTEND_URL
 
 from fastapi import FastAPI, HTTPException
@@ -8,6 +9,7 @@ from pydantic import BaseModel
 from student_service import (
     login_teacher,
     read_students,
+    read_lesson_records,
     update_lesson_record,
 )
 
@@ -20,6 +22,7 @@ allowed_origins = [
     "http://127.0.0.1:5173",
     FRONTEND_URL.rstrip("/"),
 ]
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -57,7 +60,6 @@ class LessonRecordUpdateRequest(BaseModel):
     schoolName: str
     grade: str
     teacherName: str
-    teacherCode: str = ""
 
     homeworks: list[AchievementItemRequest]
     dailyEvaluations: list[AchievementItemRequest]
@@ -100,15 +102,43 @@ def login(
     return teacher
 
 
+# 학생 Select 목록
 @app.get("/students")
 def get_students(
-    teacherCode: str,
+    teacherName: str,
 ):
-    return read_students(
-        teacherCode,
-    )
+    try:
+        return read_students(
+            teacherName,
+        )
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        ) from error
 
 
+# 선택한 학생의 수업 기록
+@app.get("/students/{student_id}/records")
+def get_student_records(
+    student_id: str,
+    teacherName: str,
+):
+    try:
+        return read_lesson_records(
+            teacherName,
+            student_id,
+        )
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        ) from error
+
+
+# 수업 기록 수정
 @app.put("/students/{record_id}")
 def update_student_record(
     record_id: str,
@@ -119,8 +149,15 @@ def update_student_record(
             record_id,
             request.model_dump(),
         )
+
     except ValueError as error:
         raise HTTPException(
             status_code=404,
+            detail=str(error),
+        ) from error
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
             detail=str(error),
         ) from error

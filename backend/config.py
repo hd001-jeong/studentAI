@@ -22,13 +22,13 @@ GOOGLE_CREDENTIALS_JSON = os.getenv(
 
 GOOGLE_SHEET_ID = os.getenv(
     "GOOGLE_SHEET_ID",
-    "13mBNO4GeIPNQwswa-XRTff_jtqMMSZazETYLn_GRmhQ",
+    "1IGshnCyIrDllp9E1GaH21WllSVuSpXpmYT7bW0QOmqc",
 )
 
 
 GOOGLE_WORKSHEET = os.getenv(
     "GOOGLE_WORKSHEET",
-    "시트1",
+    "박현민",
 )
 
 

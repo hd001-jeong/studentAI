@@ -19,9 +19,13 @@ SCOPES = [
 ]
 
 
+# =========================================================
+# Google 인증
+# =========================================================
+
 def create_google_credentials() -> Credentials:
     """
-    배포 환경에서는 환경변수의 JSON을 사용하고,
+    배포 환경에서는 환경변수 JSON을 사용하고,
     로컬에서는 서비스 계정 JSON 파일을 사용한다.
     """
     if GOOGLE_CREDENTIALS_JSON:
@@ -45,12 +49,17 @@ def create_google_credentials() -> Credentials:
         scopes=SCOPES,
     )
 
-def to_number_or_none(value: str) -> int | None:
-    """
-    Google Sheet의 문자열 값을 숫자로 변환한다.
 
-    빈 값은 None으로 반환한다.
-    그래야 프론트에서 '미입력'으로 표시할 수 있다.
+# =========================================================
+# 공통 변환 함수
+# =========================================================
+
+def to_number_or_none(
+    value: Any,
+) -> int | None:
+    """
+    빈 값 -> None
+    숫자 -> int
     """
     cleaned_value = str(value).strip()
 
@@ -63,53 +72,58 @@ def to_number_or_none(value: str) -> int | None:
         return None
 
 
-def to_week_number(value: str) -> int:
+def to_week_number(
+    value: Any,
+) -> int:
     """
-    다음 형식에서 주차 숫자를 추출한다.
-
     예:
     1       -> 1
     1주     -> 1
     1주차   -> 1
-    5월1주  -> 1
-    6월 3주 -> 3
+    8월4주  -> 4
     """
     cleaned_value = str(value).strip()
 
-    match = re.search(r"(\d+)\s*주(?:차)?", cleaned_value)
+    match = re.search(
+        r"(\d+)\s*주(?:차)?",
+        cleaned_value,
+    )
 
     if match:
-        return int(match.group(1))
+        return int(
+            match.group(1),
+        )
 
     try:
-        return int(cleaned_value)
+        return int(
+            cleaned_value,
+        )
     except ValueError:
         return 0
 
 
 def create_achievement_item(
-    name: str,
-    achievement: str,
+    name: Any,
+    achievement: Any,
 ) -> dict[str, Any]:
-    """
-    숙제와 당일평가에서 공통으로 사용하는 구조를 만든다.
-    """
     return {
         "name": str(name).strip(),
-        "achievement": to_number_or_none(achievement),
+        "achievement": to_number_or_none(
+            achievement,
+        ),
     }
 
 
-def get_spreadsheet():
-    """
-    서비스 계정으로 Google Spreadsheet에 접속한다.
+# =========================================================
+# Spreadsheet 연결
+# =========================================================
 
-    로컬에서는 서비스 계정 JSON 파일을 사용하고,
-    배포 환경에서는 GOOGLE_CREDENTIALS_JSON 환경변수를 사용한다.
-    """
+def get_spreadsheet():
     credentials = create_google_credentials()
 
-    client = gspread.authorize(credentials)
+    client = gspread.authorize(
+        credentials,
+    )
 
     return client.open_by_key(
         GOOGLE_SHEET_ID,
@@ -117,9 +131,6 @@ def get_spreadsheet():
 
 
 def get_worksheet():
-    """
-    config.py의 GOOGLE_WORKSHEET에 지정된 기본 워크시트를 반환한다.
-    """
     spreadsheet = get_spreadsheet()
 
     return spreadsheet.worksheet(
@@ -127,20 +138,27 @@ def get_worksheet():
     )
 
 
-def get_named_worksheet(sheet_name: str):
-    """
-    전달받은 이름의 워크시트를 반환한다.
-    """
+def get_named_worksheet(
+    sheet_name: str,
+):
     spreadsheet = get_spreadsheet()
 
-    return spreadsheet.worksheet(sheet_name)
+    return spreadsheet.worksheet(
+        sheet_name,
+    )
 
+
+# =========================================================
+# 선생님 로그인용
+# =========================================================
 
 def read_teachers_from_sheet() -> list[dict[str, str]]:
     """
-    teachers 워크시트에서 선생님 로그인 정보를 읽는다.
+    teachers 워크시트에서 로그인 정보를 읽는다.
     """
-    worksheet = get_named_worksheet("teachers")
+    worksheet = get_named_worksheet(
+        "teachers",
+    )
 
     rows = worksheet.get_all_records(
         default_blank="",
@@ -152,16 +170,31 @@ def read_teachers_from_sheet() -> list[dict[str, str]]:
         teachers.append(
             {
                 "teacherCode": str(
-                    row.get("teacherCode", ""),
+                    row.get(
+                        "teacherCode",
+                        "",
+                    ),
                 ).strip(),
+
                 "teacherName": str(
-                    row.get("teacherName", ""),
+                    row.get(
+                        "teacherName",
+                        "",
+                    ),
                 ).strip(),
+
                 "password": str(
-                    row.get("password", ""),
+                    row.get(
+                        "password",
+                        "",
+                    ),
                 ).strip(),
+
                 "activeYn": str(
-                    row.get("activeYn", ""),
+                    row.get(
+                        "activeYn",
+                        "",
+                    ),
                 ).strip(),
             }
         )
@@ -169,12 +202,18 @@ def read_teachers_from_sheet() -> list[dict[str, str]]:
     return teachers
 
 
-def read_students_from_sheet(
-    teacher_code: str,
-) -> list[dict[str, Any]]:
+# =========================================================
+# 학생 Select 목록 조회
+# =========================================================
+
+def read_student_options_from_sheet(
+    teacher_name: str,
+) -> list[dict[str, str]]:
     """
-    Google Sheet 데이터를 읽고,
-    로그인한 선생님의 수업 기록만 LessonRecord 구조로 반환한다.
+    담당 선생님의 학생 목록만 반환한다.
+
+    같은 학생이 여러 주차에 존재해도
+    studentId 기준으로 한 번만 반환한다.
     """
     worksheet = get_worksheet()
 
@@ -182,161 +221,470 @@ def read_students_from_sheet(
         default_blank="",
     )
 
-    records: list[dict[str, Any]] = []
+    cleaned_teacher_name = str(
+        teacher_name,
+    ).strip()
 
-    cleaned_teacher_code = str(teacher_code).strip()
+    students: dict[
+        str,
+        dict[str, str],
+    ] = {}
 
     for row in rows:
-        row_teacher_code = str(
-            row.get("선생님코드", ""),
+        row_teacher_name = str(
+            row.get(
+                "담당 선생님",
+                "",
+            ),
         ).strip()
 
-        # 로그인한 선생님의 데이터가 아니면 제외
-        if row_teacher_code != cleaned_teacher_code:
+        if row_teacher_name != cleaned_teacher_name:
+            continue
+
+        student_id = str(
+            row.get(
+                "학생ID(자동)",
+                "",
+            ),
+        ).strip()
+
+        if not student_id:
+            continue
+
+        # 같은 학생은 한 번만
+        if student_id in students:
+            continue
+
+        students[student_id] = {
+            "studentId": student_id,
+
+            "studentName": str(
+                row.get(
+                    "학생이름(자동)",
+                    "",
+                ),
+            ).strip(),
+
+            "schoolName": str(
+                row.get(
+                    "소속학교명(자동)",
+                    "",
+                ),
+            ).strip(),
+
+            "grade": str(
+                row.get(
+                    "학년(자동)",
+                    "",
+                ),
+            ).strip(),
+
+            "teacherName": row_teacher_name,
+        }
+
+    return list(
+        students.values(),
+    )
+
+
+# =========================================================
+# recordId 생성
+# =========================================================
+
+def get_record_id_from_row(
+    row: dict[str, Any],
+) -> str:
+    """
+    구글시트의 통합행번호를 recordId로 사용한다.
+
+    통합행번호가 없는 경우에만 fallback ID를 만든다.
+    """
+
+    integrated_row_number = str(
+        row.get(
+            "통합행번호(자동, 건드리지 마세요)",
+            "",
+        ),
+    ).strip()
+
+    if integrated_row_number:
+        return integrated_row_number
+
+    student_id = str(
+        row.get(
+            "학생ID(자동)",
+            "",
+        ),
+    ).strip()
+
+    number = to_number_or_none(
+        row.get(
+            "번호",
+            "",
+        ),
+    )
+
+    if student_id and number is not None:
+        return (
+            f"{student_id}-{number}"
+        )
+
+    if student_id:
+        return student_id
+
+    return ""
+
+
+# =========================================================
+# 선택 학생의 수업 기록 조회
+# =========================================================
+
+def read_student_records_from_sheet(
+    teacher_name: str,
+    student_id: str,
+) -> list[dict[str, Any]]:
+    """
+    학생 Select에서 선택한 studentId에 해당하는
+    수업 기록만 반환한다.
+    """
+    worksheet = get_worksheet()
+
+    rows = worksheet.get_all_records(
+        default_blank="",
+    )
+
+    records: list[
+        dict[str, Any]
+    ] = []
+
+    cleaned_teacher_name = str(
+        teacher_name,
+    ).strip()
+
+    cleaned_student_id = str(
+        student_id,
+    ).strip()
+
+    for row in rows:
+        row_teacher_name = str(
+            row.get(
+                "담당 선생님",
+                "",
+            ),
+        ).strip()
+
+        if row_teacher_name != cleaned_teacher_name:
+            continue
+
+        row_student_id = str(
+            row.get(
+                "학생ID(자동)",
+                "",
+            ),
+        ).strip()
+
+        if row_student_id != cleaned_student_id:
             continue
 
         number = to_number_or_none(
-            row.get("번호", ""),
+            row.get(
+                "번호",
+                "",
+            ),
         )
 
-        student_id = str(
-            row.get("학생ID(자동)", ""),
-        ).strip()
-
-        record_id = (
-            f"R{number:03d}"
-            if number is not None
-            else student_id
+        record_id = get_record_id_from_row(
+            row,
         )
+
+        if not record_id:
+            continue
 
         record = {
             "recordId": record_id,
 
             "number": number,
+
             "category": str(
-                row.get("구분", ""),
+                row.get(
+                    "구분",
+                    "",
+                ),
             ).strip(),
 
             "weekNumber": to_week_number(
-                row.get("주차", ""),
+                row.get(
+                    "주차",
+                    "",
+                ),
             ),
+
             "weekLabel": str(
-                row.get("주차", ""),
+                row.get(
+                    "주차",
+                    "",
+                ),
             ).strip(),
+
             "progress": str(
-                row.get("진도", ""),
+                row.get(
+                    "진도",
+                    "",
+                ),
             ).strip(),
+
             "lessonDate": str(
-                row.get("날짜", ""),
+                row.get(
+                    "날짜",
+                    "",
+                ),
             ).strip(),
 
-            "studentId": student_id,
+            "studentId": row_student_id,
+
             "studentName": str(
-                row.get("학생이름(자동)", ""),
+                row.get(
+                    "학생이름(자동)",
+                    "",
+                ),
             ).strip(),
-            "schoolName": str(
-                row.get("소속학교명(자동)", ""),
-            ).strip(),
-            "grade": str(
-                row.get("학년(자동)", ""),
-            ).strip(),
-            "teacherName": str(
-                row.get("담당 선생님", ""),
-            ).strip(),
-            "teacherCode": row_teacher_code,
 
+            "schoolName": str(
+                row.get(
+                    "소속학교명(자동)",
+                    "",
+                ),
+            ).strip(),
+
+            "grade": str(
+                row.get(
+                    "학년(자동)",
+                    "",
+                ),
+            ).strip(),
+
+            "teacherName": row_teacher_name,
+
+            # 숙제
             "homeworks": [
                 create_achievement_item(
-                    row.get("숙제1", ""),
-                    row.get("숙제1 성취도", ""),
+                    row.get(
+                        "숙제1",
+                        "",
+                    ),
+                    row.get(
+                        "숙제1 성취도",
+                        "",
+                    ),
                 ),
                 create_achievement_item(
-                    row.get("숙제2", ""),
-                    row.get("숙제2 성취도", ""),
+                    row.get(
+                        "숙제2",
+                        "",
+                    ),
+                    row.get(
+                        "숙제2 성취도",
+                        "",
+                    ),
                 ),
                 create_achievement_item(
-                    row.get("숙제3", ""),
-                    row.get("숙제3 성취도", ""),
+                    row.get(
+                        "숙제3",
+                        "",
+                    ),
+                    row.get(
+                        "숙제3 성취도",
+                        "",
+                    ),
                 ),
             ],
 
+            # 당일 평가
             "dailyEvaluations": [
                 create_achievement_item(
-                    row.get("당일1", ""),
-                    row.get("당일1 성취도", ""),
+                    row.get(
+                        "당일1",
+                        "",
+                    ),
+                    row.get(
+                        "당일1 성취도",
+                        "",
+                    ),
                 ),
                 create_achievement_item(
-                    row.get("당일2", ""),
-                    row.get("당일2 성취도", ""),
+                    row.get(
+                        "당일2",
+                        "",
+                    ),
+                    row.get(
+                        "당일2 성취도",
+                        "",
+                    ),
                 ),
                 create_achievement_item(
-                    row.get("당일3", ""),
-                    row.get("당일3 성취도", ""),
+                    row.get(
+                        "당일3",
+                        "",
+                    ),
+                    row.get(
+                        "당일3 성취도",
+                        "",
+                    ),
                 ),
             ],
 
-            "homeworkAchievement": to_number_or_none(
-                row.get("숙제 성취도(자동)", ""),
+            # 숙제 자동 계산값
+            "homeworkAchievement": (
+                to_number_or_none(
+                    row.get(
+                        "숙제 성취도(자동)",
+                        "",
+                    ),
+                )
             ),
+
             "homeworkGrade": str(
-                row.get("숙제 등급 (자동)", ""),
+                row.get(
+                    "숙제 등급(자동)",
+                    "",
+                ),
             ).strip(),
 
-            "dailyAchievement": to_number_or_none(
-                row.get("당일 성취도(자동)", ""),
+            # 당일 자동 계산값
+            "dailyAchievement": (
+                to_number_or_none(
+                    row.get(
+                        "당일 성취도(자동)",
+                        "",
+                    ),
+                )
             ),
+
             "dailyGrade": str(
-                row.get("당일 등급(자동)", ""),
+                row.get(
+                    "당일 등급(자동)",
+                    "",
+                ),
             ).strip(),
 
+            # 복습 테스트
             "reviewTest": str(
-                row.get("복습 테스트", ""),
-            ).strip(),
-            "reviewQuestionCount": to_number_or_none(
-                row.get("복습 문항 개수", ""),
-            ),
-            "reviewCorrectCount": to_number_or_none(
-                row.get("복습 맞은 개수", ""),
-            ),
-            "reviewTestScore": to_number_or_none(
-                row.get("복습 테스트 점수(자동)", ""),
-            ),
-            "reviewFeedback": str(
-                row.get("복습 피드백", ""),
+                row.get(
+                    "복습 테스트",
+                    "",
+                ),
             ).strip(),
 
+            "reviewQuestionCount": (
+                to_number_or_none(
+                    row.get(
+                        "복습 문항 개수",
+                        "",
+                    ),
+                )
+            ),
+
+            "reviewCorrectCount": (
+                to_number_or_none(
+                    row.get(
+                        "복습 맞은 개수",
+                        "",
+                    ),
+                )
+            ),
+
+            "reviewTestScore": (
+                to_number_or_none(
+                    row.get(
+                        "복습 테스트 점수(자동)",
+                        "",
+                    ),
+                )
+            ),
+
+            "reviewFeedback": str(
+                row.get(
+                    "복습 피드백",
+                    "",
+                ),
+            ).strip(),
+
+            # 암기반
             "memorizationClass1": str(
-                row.get("암기반1", ""),
+                row.get(
+                    "암기반1",
+                    "",
+                ),
             ).strip(),
+
             "memorizationClass2": str(
-                row.get("암기반2", ""),
+                row.get(
+                    "암기반2",
+                    "",
+                ),
             ).strip(),
+
             "memorizationAchievement": (
                 str(
-                    row.get("암기반 성취도", ""),
+                    row.get(
+                        "암기반 성취도",
+                        "",
+                    ),
                 ).strip()
                 or None
             ),
 
+            # 코멘트
             "teacherComment": str(
-                row.get("쌤 한마디", ""),
+                row.get(
+                    "쌤 한마디",
+                    "",
+                ),
             ).strip(),
+
             "notice": str(
-                row.get("Notice", ""),
+                row.get(
+                    "Notice",
+                    "",
+                ),
             ).strip(),
         }
 
-        records.append(record)
+        records.append(
+            record,
+        )
 
     return records
 
+
+# =========================================================
+# 기존 함수 호환용
+# =========================================================
+
+def read_students_from_sheet(
+    teacher_name: str,
+) -> list[dict[str, Any]]:
+    """
+    기존 코드 호환용.
+
+    앞으로는 read_student_options_from_sheet,
+    read_student_records_from_sheet를 사용한다.
+    """
+    return read_student_options_from_sheet(
+        teacher_name,
+    )
+
+
+# =========================================================
+# 수업 기록 수정
+# =========================================================
 
 def update_lesson_record_in_sheet(
     record_id: str,
     record: dict,
 ) -> dict:
     """
-    recordId에 해당하는 한 행의 수업 기록을 수정한다.
+    recordId에 해당하는 수업기록 한 행을 수정한다.
     """
     worksheet = get_worksheet()
 
@@ -344,25 +692,23 @@ def update_lesson_record_in_sheet(
         default_blank="",
     )
 
-    headers = worksheet.row_values(1)
+    headers = worksheet.row_values(
+        1,
+    )
 
     for row_index, row in enumerate(
         rows,
         start=2,
     ):
-        number = to_number_or_none(
-            row.get("번호", ""),
-        )
-
         current_record_id = (
-            f"R{number:03d}"
-            if number is not None
-            else str(
-                row.get("학생ID(자동)", ""),
-            ).strip()
+            get_record_id_from_row(
+                row,
+            )
         )
 
-        if current_record_id != record_id:
+        if current_record_id != str(
+            record_id,
+        ).strip():
             continue
 
         homeworks = record.get(
@@ -376,114 +722,191 @@ def update_lesson_record_in_sheet(
         )
 
         values_by_header = {
-            "주차": record.get("weekLabel", ""),
-            "진도": record.get("progress", ""),
-            "날짜": record.get("lessonDate", ""),
+            # 기본 정보
+            "주차": record.get(
+                "weekLabel",
+                "",
+            ),
 
+            "진도": record.get(
+                "progress",
+                "",
+            ),
+
+            "날짜": record.get(
+                "lessonDate",
+                "",
+            ),
+
+            # 숙제1
             "숙제1": (
-                homeworks[0].get("name", "")
+                homeworks[0].get(
+                    "name",
+                    "",
+                )
                 if len(homeworks) > 0
                 else ""
             ),
+
             "숙제1 성취도": (
-                homeworks[0].get("achievement", "")
+                homeworks[0].get(
+                    "achievement",
+                    "",
+                )
                 if len(homeworks) > 0
                 else ""
             ),
 
+            # 숙제2
             "숙제2": (
-                homeworks[1].get("name", "")
+                homeworks[1].get(
+                    "name",
+                    "",
+                )
                 if len(homeworks) > 1
                 else ""
             ),
+
             "숙제2 성취도": (
-                homeworks[1].get("achievement", "")
+                homeworks[1].get(
+                    "achievement",
+                    "",
+                )
                 if len(homeworks) > 1
                 else ""
             ),
 
+            # 숙제3
             "숙제3": (
-                homeworks[2].get("name", "")
+                homeworks[2].get(
+                    "name",
+                    "",
+                )
                 if len(homeworks) > 2
                 else ""
             ),
+
             "숙제3 성취도": (
-                homeworks[2].get("achievement", "")
+                homeworks[2].get(
+                    "achievement",
+                    "",
+                )
                 if len(homeworks) > 2
                 else ""
             ),
 
+            # 당일1
             "당일1": (
-                daily_evaluations[0].get("name", "")
-                if len(daily_evaluations) > 0
+                daily_evaluations[0].get(
+                    "name",
+                    "",
+                )
+                if len(
+                    daily_evaluations
+                ) > 0
                 else ""
             ),
+
             "당일1 성취도": (
-                daily_evaluations[0].get("achievement", "")
-                if len(daily_evaluations) > 0
+                daily_evaluations[0].get(
+                    "achievement",
+                    "",
+                )
+                if len(
+                    daily_evaluations
+                ) > 0
                 else ""
             ),
 
+            # 당일2
             "당일2": (
-                daily_evaluations[1].get("name", "")
-                if len(daily_evaluations) > 1
+                daily_evaluations[1].get(
+                    "name",
+                    "",
+                )
+                if len(
+                    daily_evaluations
+                ) > 1
                 else ""
             ),
+
             "당일2 성취도": (
-                daily_evaluations[1].get("achievement", "")
-                if len(daily_evaluations) > 1
+                daily_evaluations[1].get(
+                    "achievement",
+                    "",
+                )
+                if len(
+                    daily_evaluations
+                ) > 1
                 else ""
             ),
 
+            # 당일3
             "당일3": (
-                daily_evaluations[2].get("name", "")
-                if len(daily_evaluations) > 2
-                else ""
-            ),
-            "당일3 성취도": (
-                daily_evaluations[2].get("achievement", "")
-                if len(daily_evaluations) > 2
+                daily_evaluations[2].get(
+                    "name",
+                    "",
+                )
+                if len(
+                    daily_evaluations
+                ) > 2
                 else ""
             ),
 
+            "당일3 성취도": (
+                daily_evaluations[2].get(
+                    "achievement",
+                    "",
+                )
+                if len(
+                    daily_evaluations
+                ) > 2
+                else ""
+            ),
+
+            # 복습
             "복습 테스트": record.get(
                 "reviewTest",
                 "",
             ),
+
             "복습 문항 개수": record.get(
                 "reviewQuestionCount",
                 "",
             ),
+
             "복습 맞은 개수": record.get(
                 "reviewCorrectCount",
                 "",
             ),
-            "복습 테스트 점수(자동)": record.get(
-                "reviewTestScore",
-                "",
-            ),
+
             "복습 피드백": record.get(
                 "reviewFeedback",
                 "",
             ),
 
+            # 암기반
             "암기반1": record.get(
                 "memorizationClass1",
                 "",
             ),
+
             "암기반2": record.get(
                 "memorizationClass2",
                 "",
             ),
+
             "암기반 성취도": record.get(
                 "memorizationAchievement",
                 "",
             ),
 
+            # 코멘트
             "쌤 한마디": record.get(
                 "teacherComment",
                 "",
             ),
+
             "Notice": record.get(
                 "notice",
                 "",
@@ -492,31 +915,48 @@ def update_lesson_record_in_sheet(
 
         cells_to_update = []
 
-        for header, value in values_by_header.items():
+        for (
+            header,
+            value,
+        ) in values_by_header.items():
+
             if header not in headers:
                 continue
 
-            column_index = headers.index(header) + 1
+            column_index = (
+                headers.index(
+                    header,
+                )
+                + 1
+            )
 
             if value is None:
                 value = ""
 
             cells_to_update.append(
                 {
-                    "range": gspread.utils.rowcol_to_a1(
-                        row_index,
-                        column_index,
+                    "range": (
+                        gspread.utils.rowcol_to_a1(
+                            row_index,
+                            column_index,
+                        )
                     ),
-                    "values": [[value]],
-                },
+                    "values": [
+                        [
+                            value,
+                        ]
+                    ],
+                }
             )
 
-        worksheet.batch_update(
-            cells_to_update,
-        )
+        if cells_to_update:
+            worksheet.batch_update(
+                cells_to_update,
+            )
 
         return record
 
     raise ValueError(
-        f"수업 기록을 찾을 수 없습니다: {record_id}",
+        "수업 기록을 찾을 수 없습니다: "
+        f"{record_id}"
     )
