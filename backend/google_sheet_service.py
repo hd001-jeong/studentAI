@@ -654,6 +654,22 @@ def read_student_records_from_sheet(
             record,
         )
 
+        # 최신 주차 순으로 정렬
+    records = sorted(
+        records,
+        key=lambda record: record["weekNumber"] or 0,
+        reverse=True,
+    )
+
+    # 최신 8개만 가져오기
+    records = records[:8]
+
+    # 화면에서는 오래된 주차 → 최신 주차 순으로 표시
+    records = sorted(
+        records,
+        key=lambda record: record["weekNumber"] or 0,
+    )
+
     return records
 
 
