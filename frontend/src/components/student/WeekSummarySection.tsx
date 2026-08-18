@@ -10,13 +10,20 @@ interface WeekSummarySectionProps {
   records: LessonRecord[];
   selectedRecordId: string;
   onRecordChange: (recordId: string) => void;
+  onDetailOpen: () => void;
 }
 
 function WeekSummarySection({
   records,
   selectedRecordId,
   onRecordChange,
+  onDetailOpen,
 }: WeekSummarySectionProps) {
+  const handleCardClick = (recordId: string) => {
+    onRecordChange(recordId);
+    onDetailOpen();
+  };
+
   return (
     <Card
       title={
@@ -41,7 +48,7 @@ function WeekSummarySection({
             <WeekSummaryCard
               record={record}
               selected={record.recordId === selectedRecordId}
-              onClick={() => onRecordChange(record.recordId)}
+              onClick={() => handleCardClick(record.recordId)}
             />
           </Col>
         ))}

@@ -62,6 +62,8 @@ export default function StudentDashboardPage() {
 
   const [messageApi, contextHolder] = message.useMessage();
 
+  const [detailOpen, setDetailOpen] = useState(false);
+
   /*
    * 학생 Select 목록 조회
    */
@@ -82,6 +84,7 @@ export default function StudentDashboardPage() {
     data: fetchedLessonRecords = [],
     isLoading: isRecordsLoading,
     isError: isRecordsError,
+    refetch: refetchLessonRecords,
   } = useLessonRecordsQuery(TEACHER_NAME, selectedStudentId);
 
   /*
@@ -318,7 +321,12 @@ export default function StudentDashboardPage() {
         updatedRecord,
       );
 
+      console.log("savedRecord", savedRecord);
+
       form.setFieldsValue(savedRecord);
+
+      // 저장된 최신 데이터 다시 조회
+      await refetchLessonRecords();
 
       messageApi.success(`${savedRecord.weekLabel} 기록을 저장했습니다.`);
     } catch (saveError) {
@@ -435,23 +443,26 @@ export default function StudentDashboardPage() {
                     records={displayedRecords}
                     selectedRecordId={selectedRecord.recordId}
                     onRecordChange={setSelectedRecordId}
+                    onDetailOpen={() => setDetailOpen(true)}
                   />
 
                   <StudentOverallStatus summary={overallSummary} />
 
                   <LessonDetailSection
                     weekLabel={selectedRecord.weekLabel}
+                    open={detailOpen}
                     saving={saving}
+                    onClose={() => setDetailOpen(false)}
                     onSave={handleSave}
                   >
                     <LessonBasicInfo />
 
                     <FixedAchievementSection
                       form={form}
-                      fieldName="homeworks"
-                      title="숙제"
-                      itemTitle="숙제"
-                      inputLabel="숙제 내용"
+                      fieldName="dailyEvaluations"
+                      title="당일 평가"
+                      itemTitle="당일 평가"
+                      inputLabel="평가 내용"
                     />
 
                     <div
@@ -461,10 +472,10 @@ export default function StudentDashboardPage() {
                     >
                       <FixedAchievementSection
                         form={form}
-                        fieldName="dailyEvaluations"
-                        title="당일 평가"
-                        itemTitle="당일 평가"
-                        inputLabel="평가 내용"
+                        fieldName="homeworks"
+                        title="숙제"
+                        itemTitle="숙제"
+                        inputLabel="숙제 내용"
                       />
                     </div>
 

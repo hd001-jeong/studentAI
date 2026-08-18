@@ -25,11 +25,9 @@ export default function AchievementInput({
         width: "100%",
       }}
     >
-      <Form.Item
-        name={namePath}
+      <div
         style={{
           flex: 1,
-          marginBottom: 0,
         }}
       >
         <Space.Compact
@@ -37,15 +35,17 @@ export default function AchievementInput({
             width: "100%",
           }}
         >
-          <InputNumber
-            min={0}
-            max={100}
-            precision={0}
-            placeholder="0"
-            style={{
-              width: "100%",
-            }}
-          />
+          <Form.Item name={namePath} noStyle>
+            <InputNumber
+              min={0}
+              max={100}
+              precision={0}
+              placeholder="0"
+              style={{
+                width: "100%",
+              }}
+            />
+          </Form.Item>
 
           <div
             style={{
@@ -62,7 +62,7 @@ export default function AchievementInput({
             <Text type="secondary">%</Text>
           </div>
         </Space.Compact>
-      </Form.Item>
+      </div>
 
       <Tag
         color={getAchievementTagColor(score)}
