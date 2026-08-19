@@ -16,12 +16,14 @@ interface WeekSummaryCardProps {
   record: LessonRecord;
   selected: boolean;
   onClick: () => void;
+  reportMode?: boolean;
 }
 
 export default function WeekSummaryCard({
   record,
   selected,
   onClick,
+  reportMode = false,
 }: WeekSummaryCardProps) {
   const homeworkAverage = calculateAverage(
     record.homeworks.map((homework) => homework.achievement),
@@ -30,6 +32,372 @@ export default function WeekSummaryCard({
   const dailyAverage = calculateAverage(
     record.dailyEvaluations.map((evaluation) => evaluation.achievement),
   );
+
+  // =========================================================
+  // PDF / 리포트 전용 디자인
+  // =========================================================
+
+  if (reportMode) {
+    const reportItemStyle = {
+      display: "grid",
+      gridTemplateColumns: "45% 55%",
+      alignItems: "center",
+      minHeight: 38,
+      marginTop: 5,
+      padding: "6px 10px",
+      borderRadius: 8,
+      border: "1px solid #e5e7eb",
+      background: "#fafafa",
+    };
+
+    const labelStyle = {
+      fontFamily: '"Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif',
+
+      fontSize: 20,
+      fontWeight: 900,
+      color: "#222222",
+    };
+
+    const valueWrapStyle = {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      minWidth: 0,
+    };
+
+    const valueStyle = {
+      fontFamily: '"Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif',
+
+      fontSize: 20,
+      fontWeight: 900,
+      color: "#111111",
+    };
+
+    return (
+      <Card
+        size="small"
+        style={{
+          height: "100%",
+          border: "1px solid #d9d9d9",
+          borderRadius: 10,
+          boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+          background: "#ffffff",
+          overflow: "hidden",
+        }}
+        styles={{
+          body: {
+            padding: 10,
+          },
+        }}
+      >
+        {/* =====================================================
+            주차
+        ===================================================== */}
+
+        <div
+          style={{
+            padding: "6px 8px",
+            textAlign: "center",
+            background: "#f5f5f5",
+            borderRadius: 7,
+            marginBottom: 5,
+          }}
+        >
+          <Text
+            style={{
+              fontFamily:
+                '"Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif',
+
+              fontSize: 17,
+              fontWeight: 800,
+              color: "#111827",
+            }}
+          >
+            {record.weekLabel || `${record.weekNumber}주차`}
+          </Text>
+
+          {record.weekLabel &&
+            record.weekLabel !== `${record.weekNumber}주차` && (
+              <Text
+                style={{
+                  marginLeft: 6,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#667085",
+                }}
+              >
+                ({record.weekNumber}주차)
+              </Text>
+            )}
+        </div>
+
+        {/* =====================================================
+            진도
+        ===================================================== */}
+
+        <div
+          style={{
+            padding: "6px 8px",
+            textAlign: "center",
+            background: "#eef6ff",
+            borderRadius: 7,
+            marginBottom: 6,
+          }}
+        >
+          <Text
+            ellipsis={{
+              tooltip: record.progress || "진도 미입력",
+            }}
+            style={{
+              display: "block",
+
+              fontFamily:
+                '"Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif',
+
+              fontSize: 15,
+              fontWeight: 800,
+              color: "#4169a8",
+            }}
+          >
+            {record.progress || "진도 미입력"}
+          </Text>
+        </div>
+
+        {/* =====================================================
+            숙제
+        ===================================================== */}
+
+        <div
+          style={{
+            ...reportItemStyle,
+
+            background:
+              homeworkAverage === null
+                ? "#fafafa"
+                : getAchievementBackground(homeworkAverage),
+
+            border:
+              homeworkAverage === null
+                ? "1px solid #e5e7eb"
+                : `1px solid ${getAchievementColor(homeworkAverage)}`,
+          }}
+        >
+          <Text style={labelStyle}>숙제 성취율</Text>
+
+          <div style={valueWrapStyle}>
+            <Text
+              style={{
+                ...valueStyle,
+
+                color:
+                  homeworkAverage === null
+                    ? "#667085"
+                    : getAchievementColor(homeworkAverage),
+              }}
+            >
+              {homeworkAverage === null ? "미입력" : `${homeworkAverage}%`}
+            </Text>
+
+            {homeworkAverage !== null && (
+              <Tag
+                color={getAchievementTagColor(homeworkAverage)}
+                style={{
+                  margin: 0,
+                  fontSize: 20,
+                  fontWeight: 700,
+                  lineHeight: "20px",
+                }}
+              >
+                {getAchievementLabel(homeworkAverage)}
+              </Tag>
+            )}
+          </div>
+        </div>
+
+        {/* =====================================================
+            당일 평가
+        ===================================================== */}
+
+        <div
+          style={{
+            ...reportItemStyle,
+
+            background:
+              dailyAverage === null
+                ? "#fafafa"
+                : getAchievementBackground(dailyAverage),
+
+            border:
+              dailyAverage === null
+                ? "1px solid #e5e7eb"
+                : `1px solid ${getAchievementColor(dailyAverage)}`,
+          }}
+        >
+          <Text style={labelStyle}>당일 평가</Text>
+
+          <div style={valueWrapStyle}>
+            <Text
+              style={{
+                ...valueStyle,
+
+                color:
+                  dailyAverage === null
+                    ? "#667085"
+                    : getAchievementColor(dailyAverage),
+              }}
+            >
+              {dailyAverage === null ? "미입력" : `${dailyAverage}%`}
+            </Text>
+
+            {dailyAverage !== null && (
+              <Tag
+                color={getAchievementTagColor(dailyAverage)}
+                style={{
+                  margin: 0,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  lineHeight: "20px",
+                }}
+              >
+                {getAchievementLabel(dailyAverage)}
+              </Tag>
+            )}
+          </div>
+        </div>
+
+        {/* =====================================================
+            복습 테스트
+        ===================================================== */}
+
+        <div
+          style={{
+            ...reportItemStyle,
+
+            background:
+              record.reviewTestScore === null
+                ? "#fafafa"
+                : getAchievementBackground(record.reviewTestScore),
+
+            border:
+              record.reviewTestScore === null
+                ? "1px solid #e5e7eb"
+                : `1px solid ${getAchievementColor(record.reviewTestScore)}`,
+          }}
+        >
+          <Text style={labelStyle}>복습테스트 점수</Text>
+
+          <div style={valueWrapStyle}>
+            <Text
+              style={{
+                ...valueStyle,
+
+                color:
+                  record.reviewTestScore === null
+                    ? "#667085"
+                    : getAchievementColor(record.reviewTestScore),
+              }}
+            >
+              {record.reviewTestScore === null
+                ? "미입력"
+                : `${record.reviewTestScore}점`}
+            </Text>
+
+            {record.reviewTestScore !== null && (
+              <Tag
+                color={getAchievementTagColor(record.reviewTestScore)}
+                style={{
+                  margin: 0,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  lineHeight: "20px",
+                }}
+              >
+                {getAchievementLabel(record.reviewTestScore)}
+              </Tag>
+            )}
+          </div>
+        </div>
+
+        {/* =====================================================
+            암기반
+        ===================================================== */}
+
+        <div
+          style={{
+            ...reportItemStyle,
+            background: "#fafafa",
+          }}
+        >
+          <Text style={labelStyle}>암기반</Text>
+
+          <div style={valueWrapStyle}>
+            <Text
+              style={{
+                ...valueStyle,
+                fontSize: 20,
+                color: "#475467",
+              }}
+            >
+              {record.memorizationAchievement || "미입력"}
+            </Text>
+          </div>
+        </div>
+
+        {/* =====================================================
+            비고
+        ===================================================== */}
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "18% 82%",
+            alignItems: "center",
+            minHeight: 38,
+            marginTop: 5,
+            padding: "6px 10px",
+            borderRadius: 8,
+            border: "1px solid #f1e4b8",
+            background: record.teacherComment ? "#fffaf0" : "#f8f9fb",
+          }}
+        >
+          <Text
+            style={{
+              fontFamily:
+                '"Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif',
+
+              fontSize: 18,
+              fontWeight: 800,
+              color: "#344054",
+            }}
+          ></Text>
+
+          <Text
+            ellipsis={{
+              tooltip: record.teacherComment || "쌤 한마디 미입력",
+            }}
+            style={{
+              display: "block",
+
+              fontFamily:
+                '"Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif',
+
+              fontSize: 18,
+              fontWeight: 600,
+              color: "#475467",
+            }}
+          >
+            {record.teacherComment || "쌤 한마디 미입력"}
+          </Text>
+        </div>
+      </Card>
+    );
+  }
+
+  // =========================================================
+  // 메인 대시보드
+  // 기존 디자인 유지
+  // =========================================================
 
   const achievementItemStyle = {
     padding: "6px 8px",
@@ -45,7 +413,9 @@ export default function WeekSummaryCard({
         height: "100%",
         cursor: "pointer",
         background: "#ffffff",
+
         border: selected ? "2px solid #1677ff" : "1px solid #d9d9d9",
+
         boxShadow: selected
           ? "0 0 0 2px rgba(22,119,255,0.1)"
           : "0 1px 2px rgba(0,0,0,0.03)",
@@ -61,8 +431,7 @@ export default function WeekSummaryCard({
         <Text
           strong
           style={{
-            fontSize: 16,
-            color: "#1f1f1f",
+            fontSize: 17,
           }}
         >
           {record.weekNumber}주차
@@ -95,15 +464,10 @@ export default function WeekSummaryCard({
 
       {/* 진도 */}
       <Text
-        ellipsis={{
-          tooltip: record.progress || "진도 미입력",
-        }}
         style={{
           display: "block",
-          minHeight: 20,
-          marginTop: 5,
+          fontSize: 14,
           fontWeight: 600,
-          fontSize: 13,
         }}
       >
         {record.progress || "진도 미입력"}
@@ -121,7 +485,9 @@ export default function WeekSummaryCard({
         <div
           style={{
             ...achievementItemStyle,
+
             background: getAchievementBackground(homeworkAverage),
+
             border: `1px solid ${getAchievementColor(homeworkAverage)}`,
           }}
         >
@@ -135,6 +501,7 @@ export default function WeekSummaryCard({
                 strong
                 style={{
                   fontSize: 13,
+
                   color: getAchievementColor(homeworkAverage),
                 }}
               >
@@ -159,7 +526,9 @@ export default function WeekSummaryCard({
         <div
           style={{
             ...achievementItemStyle,
+
             background: getAchievementBackground(dailyAverage),
+
             border: `1px solid ${getAchievementColor(dailyAverage)}`,
           }}
         >
@@ -173,6 +542,7 @@ export default function WeekSummaryCard({
                 strong
                 style={{
                   fontSize: 13,
+
                   color: getAchievementColor(dailyAverage),
                 }}
               >
@@ -183,7 +553,7 @@ export default function WeekSummaryCard({
                 color={getAchievementTagColor(dailyAverage)}
                 style={{
                   margin: 0,
-                  fontSize: 10,
+                  fontSize: 12,
                   lineHeight: "18px",
                 }}
               >
@@ -197,7 +567,9 @@ export default function WeekSummaryCard({
         <div
           style={{
             ...achievementItemStyle,
+
             background: getAchievementBackground(record.reviewTestScore),
+
             border: `1px solid ${getAchievementColor(record.reviewTestScore)}`,
           }}
         >
@@ -211,6 +583,7 @@ export default function WeekSummaryCard({
                 strong
                 style={{
                   fontSize: 13,
+
                   color: getAchievementColor(record.reviewTestScore),
                 }}
               >

@@ -12,6 +12,13 @@ interface TeacherLoginResponse {
   teacherName: string;
 }
 
+interface LessonRecordsBatchRequest {
+  teacherName: string;
+  studentIds: string[];
+}
+
+type LessonRecordsBatchResponse = Record<string, LessonRecord[]>;
+
 class StudentApi {
   async login(request: TeacherLoginRequest): Promise<TeacherLoginResponse> {
     const response = await ApiClient.post<TeacherLoginResponse>(
@@ -36,7 +43,7 @@ class StudentApi {
   }
 
   /**
-   * 선택한 학생의 수업 기록 조회
+   * 선택한 학생 1명의 수업 기록 조회
    */
   async getLessonRecords(
     teacherName: string,
@@ -49,6 +56,26 @@ class StudentApi {
           teacherName,
         },
       },
+    );
+
+    return response.data;
+  }
+
+  /**
+   * 여러 학생의 수업 기록 일괄 조회
+   */
+  async getLessonRecordsBatch(
+    teacherName: string,
+    studentIds: string[],
+  ): Promise<LessonRecordsBatchResponse> {
+    const request: LessonRecordsBatchRequest = {
+      teacherName,
+      studentIds,
+    };
+
+    const response = await ApiClient.post<LessonRecordsBatchResponse>(
+      "/students/records/batch",
+      request,
     );
 
     return response.data;

@@ -66,7 +66,7 @@ export default function FixedAchievementSection({
                     marginBottom: 10,
                   }}
                 >
-                  <Input />
+                  <Input readOnly />
                 </Form.Item>
 
                 <Text

@@ -1,22 +1,29 @@
-import { createBrowserRouter } from "react-router-dom";
+import { Navigate, createBrowserRouter } from "react-router-dom";
 
+import MainLayout from "@/components/layout/MainLayout";
+
+import StudentReportPage from "@/pages/Report/StudentReportPage";
 import StudentDashboardPage from "@/pages/Student/StudentDashboardPage";
-// import StudentPage from "@/pages/Student/StudentPage";
-// import { TeacherLoginPage } from "@/pages/Teacher";
 
 const router = createBrowserRouter([
-  // {
-  //   path: "/",
-  //   element: <TeacherLoginPage />,
-  // },
   {
     path: "/",
-    element: <StudentDashboardPage />,
+    element: <MainLayout />,
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/students" replace />,
+      },
+      {
+        path: "students",
+        element: <StudentDashboardPage />,
+      },
+      {
+        path: "reports",
+        element: <StudentReportPage />,
+      },
+    ],
   },
-  // {
-  //   path: "/student",
-  //   element: <StudentPage />,
-  // },
 ]);
 
 export default router;

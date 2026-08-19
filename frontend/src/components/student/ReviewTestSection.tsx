@@ -25,6 +25,7 @@ interface ReviewTestSectionProps {
 }
 
 interface NumberInputWithUnitProps {
+  readOnly?: boolean;
   unit: string;
   disabled?: boolean;
   min?: number;
@@ -32,6 +33,7 @@ interface NumberInputWithUnitProps {
 }
 
 function NumberInputWithUnit({
+  readOnly,
   unit,
   disabled = false,
   min,
@@ -40,6 +42,7 @@ function NumberInputWithUnit({
   return (
     <Flex align="center">
       <InputNumber
+        readOnly={!readOnly}
         min={min}
         max={max}
         precision={0}
@@ -99,19 +102,20 @@ export default function ReviewTestSection({
       <Row gutter={[12, 0]}>
         <Col xs={24} lg={6}>
           <Form.Item label="복습 테스트명" name="reviewTest">
-            <Input />
+            <Input readOnly />
           </Form.Item>
         </Col>
 
         <Col xs={24} sm={8} lg={4}>
           <Form.Item label="복습 문항 개수" name="reviewQuestionCount">
-            <NumberInputWithUnit min={0} unit="문항" />
+            <NumberInputWithUnit min={0} unit="문항" readOnly={false} />
           </Form.Item>
         </Col>
 
         <Col xs={24} sm={8} lg={4}>
           <Form.Item label="복습 맞은 개수" name="reviewCorrectCount">
             <NumberInputWithUnit
+              readOnly={true}
               min={0}
               max={reviewQuestionCount ?? undefined}
               unit="개"

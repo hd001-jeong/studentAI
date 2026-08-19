@@ -11,6 +11,9 @@ interface WeekSummarySectionProps {
   selectedRecordId: string;
   onRecordChange: (recordId: string) => void;
   onDetailOpen: () => void;
+  readOnly?: boolean;
+  columns?: 2 | 4;
+  reportMode?: boolean;
 }
 
 function WeekSummarySection({
@@ -18,11 +21,11 @@ function WeekSummarySection({
   selectedRecordId,
   onRecordChange,
   onDetailOpen,
+  readOnly = false,
+  columns = 4,
+  reportMode = false,
 }: WeekSummarySectionProps) {
-  const handleCardClick = (recordId: string) => {
-    onRecordChange(recordId);
-    onDetailOpen();
-  };
+  const lgSpan = columns === 2 ? 12 : 6;
 
   return (
     <Card
@@ -44,11 +47,19 @@ function WeekSummarySection({
     >
       <Row gutter={[10, 10]}>
         {records.map((record) => (
-          <Col key={record.recordId} xs={24} sm={12} lg={6}>
+          <Col key={record.recordId} xs={24} sm={12} lg={lgSpan}>
             <WeekSummaryCard
               record={record}
-              selected={record.recordId === selectedRecordId}
-              onClick={() => handleCardClick(record.recordId)}
+              selected={!readOnly && record.recordId === selectedRecordId}
+              reportMode={reportMode}
+              onClick={() => {
+                if (readOnly) {
+                  return;
+                }
+
+                onRecordChange(record.recordId);
+                onDetailOpen();
+              }}
             />
           </Col>
         ))}

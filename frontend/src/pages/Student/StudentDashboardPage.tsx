@@ -1,10 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-
-import { Card, Form, Layout, Spin, Typography, message } from "antd";
+import { Card, Form, Spin, Typography, message } from "antd";
 
 import StudentApi from "@/api/StudentApi";
-
-import AppHeader from "@/components/layout/AppHeader";
 
 import {
   FixedAchievementSection,
@@ -36,7 +33,6 @@ import {
   calculateReviewScore,
 } from "@/utils/achievement";
 
-const { Content } = Layout;
 const { Text } = Typography;
 
 const TEACHER_NAME = "박현민";
@@ -63,6 +59,20 @@ export default function StudentDashboardPage() {
   const [messageApi, contextHolder] = message.useMessage();
 
   const [detailOpen, setDetailOpen] = useState(false);
+
+  const setRecordToForm = (record: LessonRecord) => {
+    form.setFieldsValue({
+      ...record,
+
+      homeworks: record.homeworks.map((homework) => ({
+        ...homework,
+      })) as LessonRecord["homeworks"],
+
+      dailyEvaluations: record.dailyEvaluations.map((evaluation) => ({
+        ...evaluation,
+      })) as LessonRecord["dailyEvaluations"],
+    });
+  };
 
   /*
    * 학생 Select 목록 조회
@@ -173,6 +183,24 @@ export default function StudentDashboardPage() {
     setSelectedRecordId("DEFAULT_WEEK_1");
   };
 
+  const handleDetailClose = () => {
+    if (selectedRecord) {
+      form.setFieldsValue({
+        ...selectedRecord,
+
+        homeworks: selectedRecord.homeworks.map((homework) => ({
+          ...homework,
+        })),
+
+        dailyEvaluations: selectedRecord.dailyEvaluations.map((evaluation) => ({
+          ...evaluation,
+        })),
+      });
+    }
+
+    setDetailOpen(false);
+  };
+
   /*
    * 학생 기록 조회 완료 후
    * 첫 번째 실제 기록 선택
@@ -236,18 +264,8 @@ export default function StudentDashboardPage() {
       return;
     }
 
-    form.setFieldsValue({
-      ...selectedRecord,
-
-      homeworks: selectedRecord.homeworks.map((homework) => ({
-        ...homework,
-      })) as LessonRecord["homeworks"],
-
-      dailyEvaluations: selectedRecord.dailyEvaluations.map((evaluation) => ({
-        ...evaluation,
-      })) as LessonRecord["dailyEvaluations"],
-    });
-  }, [form, selectedRecord]);
+    setRecordToForm(selectedRecord);
+  }, [selectedRecord]);
 
   /*
    * 전체 평균
@@ -321,8 +339,6 @@ export default function StudentDashboardPage() {
         updatedRecord,
       );
 
-      console.log("savedRecord", savedRecord);
-
       form.setFieldsValue(savedRecord);
 
       // 저장된 최신 데이터 다시 조회
@@ -388,128 +404,108 @@ export default function StudentDashboardPage() {
   return (
     <>
       {contextHolder}
-
-      <Layout
+      <div
         style={{
-          minHeight: "100vh",
+          width: "100%",
+          maxWidth: 1700,
+          margin: "0 auto",
         }}
       >
-        <AppHeader teacherName={TEACHER_NAME} />
+        <Form form={form} layout="vertical" requiredMark={false}>
+          <StudentHeaderCard
+            selectedGrade={selectedGrade}
+            gradeOptions={gradeOptions}
+            selectedStudentId={selectedStudentId}
+            studentOptions={studentOptions}
+            selectedRecord={selectedRecord}
+            onGradeChange={handleGradeChange}
+            onStudentChange={handleStudentChange}
+          />
 
-        <Content
-          style={{
-            padding: 18,
-            background: "#f5f7fa",
-          }}
-        >
-          <div
-            style={{
-              width: "100%",
-              maxWidth: 1700,
-              margin: "0 auto",
-            }}
-          >
-            <Form form={form} layout="vertical" requiredMark={false}>
-              <StudentHeaderCard
-                selectedGrade={selectedGrade}
-                gradeOptions={gradeOptions}
-                selectedStudentId={selectedStudentId}
-                studentOptions={studentOptions}
-                selectedRecord={selectedRecord}
-                onGradeChange={handleGradeChange}
-                onStudentChange={handleStudentChange}
+          {isRecordsLoading ? (
+            <Card
+              style={{
+                marginTop: 12,
+              }}
+            >
+              <Spin />
+
+              <Text
+                type="secondary"
+                style={{
+                  marginLeft: 10,
+                }}
+              >
+                학생 수업 기록을 불러오는 중입니다.
+              </Text>
+            </Card>
+          ) : (
+            <>
+              <WeekSummarySection
+                records={displayedRecords}
+                selectedRecordId={selectedRecord.recordId}
+                onRecordChange={setSelectedRecordId}
+                onDetailOpen={() => setDetailOpen(true)}
               />
 
-              {isRecordsLoading ? (
-                <Card
+              <StudentOverallStatus summary={overallSummary} />
+
+              <LessonDetailSection
+                weekLabel={selectedRecord.weekLabel}
+                open={detailOpen}
+                saving={saving}
+                onClose={handleDetailClose}
+                onSave={handleSave}
+              >
+                <LessonBasicInfo />
+
+                <FixedAchievementSection
+                  form={form}
+                  fieldName="dailyEvaluations"
+                  title="당일 평가"
+                  itemTitle="당일 평가"
+                  inputLabel="평가 내용"
+                />
+
+                <div
                   style={{
-                    marginTop: 12,
+                    marginTop: 10,
                   }}
                 >
-                  <Spin />
-
-                  <Text
-                    type="secondary"
-                    style={{
-                      marginLeft: 10,
-                    }}
-                  >
-                    학생 수업 기록을 불러오는 중입니다.
-                  </Text>
-                </Card>
-              ) : (
-                <>
-                  <WeekSummarySection
-                    records={displayedRecords}
-                    selectedRecordId={selectedRecord.recordId}
-                    onRecordChange={setSelectedRecordId}
-                    onDetailOpen={() => setDetailOpen(true)}
+                  <FixedAchievementSection
+                    form={form}
+                    fieldName="homeworks"
+                    title="숙제"
+                    itemTitle="숙제"
+                    inputLabel="숙제 내용"
                   />
+                </div>
 
-                  <StudentOverallStatus summary={overallSummary} />
+                <ReviewTestSection
+                  reviewScore={reviewScore}
+                  reviewQuestionCount={reviewQuestionCount}
+                />
 
-                  <LessonDetailSection
-                    weekLabel={selectedRecord.weekLabel}
-                    open={detailOpen}
-                    saving={saving}
-                    onClose={() => setDetailOpen(false)}
-                    onSave={handleSave}
-                  >
-                    <LessonBasicInfo />
+                <MemorizationSection achievement={memorizationAchievement} />
 
-                    <FixedAchievementSection
-                      form={form}
-                      fieldName="dailyEvaluations"
-                      title="당일 평가"
-                      itemTitle="당일 평가"
-                      inputLabel="평가 내용"
-                    />
+                <TeacherCommentSection maxLength={TEACHER_COMMENT_MAX_LENGTH} />
+              </LessonDetailSection>
+            </>
+          )}
 
-                    <div
-                      style={{
-                        marginTop: 10,
-                      }}
-                    >
-                      <FixedAchievementSection
-                        form={form}
-                        fieldName="homeworks"
-                        title="숙제"
-                        itemTitle="숙제"
-                        inputLabel="숙제 내용"
-                      />
-                    </div>
-
-                    <ReviewTestSection
-                      reviewScore={reviewScore}
-                      reviewQuestionCount={reviewQuestionCount}
-                    />
-
-                    <MemorizationSection
-                      achievement={memorizationAchievement}
-                    />
-
-                    <TeacherCommentSection
-                      maxLength={TEACHER_COMMENT_MAX_LENGTH}
-                    />
-                  </LessonDetailSection>
-                </>
-              )}
-
-              {isRecordsError && (
-                <Card
-                  style={{
-                    marginTop: 12,
-                  }}
-                >
-                  <Text type="danger">
-                    선택한 학생의 수업 기록을 불러오지 못했습니다.
-                  </Text>
-                </Card>
-              )}
-            </Form>
-          </div>
-        </Content>
-      </Layout>
+          {isRecordsError && (
+            <Card
+              style={{
+                marginTop: 12,
+              }}
+            >
+              <Text type="danger">
+                선택한 학생의 수업 기록을 불러오지 못했습니다.
+              </Text>
+            </Card>
+          )}
+        </Form>
+      </div>
     </>
   );
 }
