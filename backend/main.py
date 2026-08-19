@@ -10,6 +10,7 @@ from student_service import (
     login_teacher,
     read_students,
     read_lesson_records,
+    read_lesson_records_batch,
     update_lesson_record,
 )
 
@@ -42,6 +43,11 @@ class TeacherLoginRequest(BaseModel):
 class AchievementItemRequest(BaseModel):
     name: str
     achievement: int | None = None
+
+
+class LessonRecordsBatchRequest(BaseModel):
+    teacherName: str
+    studentIds: list[str]
 
 
 class LessonRecordUpdateRequest(BaseModel):
@@ -84,6 +90,10 @@ class LessonRecordUpdateRequest(BaseModel):
     notice: str = ""
 
 
+# =========================================================
+# 선생님 로그인
+# =========================================================
+
 @app.post("/login")
 def login(
     request: TeacherLoginRequest,
@@ -102,7 +112,10 @@ def login(
     return teacher
 
 
-# 학생 Select 목록
+# =========================================================
+# 학생 Select 목록 조회
+# =========================================================
+
 @app.get("/students")
 def get_students(
     teacherName: str,
@@ -119,7 +132,10 @@ def get_students(
         ) from error
 
 
-# 선택한 학생의 수업 기록
+# =========================================================
+# 선택한 학생의 수업 기록 조회
+# =========================================================
+
 @app.get("/students/{student_id}/records")
 def get_student_records(
     student_id: str,
@@ -138,7 +154,31 @@ def get_student_records(
         ) from error
 
 
+# =========================================================
+# 여러 학생의 수업 기록 일괄 조회
+# =========================================================
+
+@app.post("/students/records/batch")
+def get_student_records_batch(
+    request: LessonRecordsBatchRequest,
+):
+    try:
+        return read_lesson_records_batch(
+            request.teacherName,
+            request.studentIds,
+        )
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        ) from error
+
+
+# =========================================================
 # 수업 기록 수정
+# =========================================================
+
 @app.put("/students/{record_id}")
 def update_student_record(
     record_id: str,

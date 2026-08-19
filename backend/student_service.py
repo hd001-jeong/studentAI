@@ -3,6 +3,7 @@ from typing import Any
 from google_sheet_service import (
     read_student_options_from_sheet,
     read_student_records_from_sheet,
+    read_student_records_batch_from_sheet,
     read_teachers_from_sheet,
     update_lesson_record_in_sheet,
 )
@@ -25,6 +26,15 @@ def read_lesson_records(
     return read_student_records_from_sheet(
         teacher_name,
         student_id,
+    )
+
+def read_lesson_records_batch(
+    teacher_name: str,
+    student_ids: list[str],
+) -> dict[str, list[dict[str, Any]]]:
+    return read_student_records_batch_from_sheet(
+        teacher_name,
+        student_ids,
     )
 
 
