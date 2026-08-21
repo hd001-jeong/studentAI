@@ -10,10 +10,12 @@ export type AchievementTuple = [
 ];
 
 export type MemorizationAchievement =
+  | "선택"
   | "통과"
   | "보충 필요"
   | "결석"
   | "조퇴"
+  | ""
   | null;
 
 /**

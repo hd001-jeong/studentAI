@@ -92,76 +92,80 @@ export default function WeekSummaryCard({
         }}
       >
         {/* =====================================================
-            주차
-        ===================================================== */}
+    주차 + 진도
+===================================================== */}
 
         <div
           style={{
-            padding: "6px 8px",
+            padding: "8px 10px",
             textAlign: "center",
-            background: "#f5f5f5",
-            borderRadius: 7,
-            marginBottom: 5,
-          }}
-        >
-          <Text
-            style={{
-              fontFamily:
-                '"Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif',
-
-              fontSize: 17,
-              fontWeight: 800,
-              color: "#111827",
-            }}
-          >
-            {record.weekLabel || `${record.weekNumber}주차`}
-          </Text>
-
-          {record.weekLabel &&
-            record.weekLabel !== `${record.weekNumber}주차` && (
-              <Text
-                style={{
-                  marginLeft: 6,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "#667085",
-                }}
-              >
-                ({record.weekNumber}주차)
-              </Text>
-            )}
-        </div>
-
-        {/* =====================================================
-            진도
-        ===================================================== */}
-
-        <div
-          style={{
-            padding: "6px 8px",
-            textAlign: "center",
-            background: "#eef6ff",
+            background: "#e6f4ff",
             borderRadius: 7,
             marginBottom: 6,
           }}
         >
           <Text
-            ellipsis={{
-              tooltip: record.progress || "진도 미입력",
-            }}
             style={{
-              display: "block",
-
               fontFamily:
                 '"Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif',
-
-              fontSize: 15,
+              fontSize: 17,
               fontWeight: 800,
-              color: "#4169a8",
+              color: "#1456a0",
             }}
           >
-            {record.progress || "진도 미입력"}
+            {record.weekLabel || `${record.weekNumber}주차`} (
+            {record.weekNumber}주차) / {record.progress || "진도"}
           </Text>
+        </div>
+        {/* =====================================================
+            당일 평가
+        ===================================================== */}
+
+        <div
+          style={{
+            ...reportItemStyle,
+
+            background:
+              dailyAverage === null
+                ? "#fafafa"
+                : getAchievementBackground(dailyAverage),
+
+            border:
+              dailyAverage === null
+                ? "1px solid #e5e7eb"
+                : `1px solid ${getAchievementColor(dailyAverage)}`,
+          }}
+        >
+          <Text style={labelStyle}>당일 평가</Text>
+
+          <div style={valueWrapStyle}>
+            <Text
+              style={{
+                ...valueStyle,
+
+                color:
+                  dailyAverage === null
+                    ? "#667085"
+                    : getAchievementColor(dailyAverage),
+              }}
+            >
+              {dailyAverage === null ? "-" : `${dailyAverage}%`}
+            </Text>
+
+            {dailyAverage !== null && (
+              <Tag
+                color={getAchievementTagColor(dailyAverage)}
+                style={{
+                  margin: 0,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  lineHeight: "20px",
+                }}
+              >
+                {getAchievementLabel(dailyAverage)}
+              </Tag>
+            )}
+          </div>
         </div>
 
         {/* =====================================================
@@ -196,7 +200,7 @@ export default function WeekSummaryCard({
                     : getAchievementColor(homeworkAverage),
               }}
             >
-              {homeworkAverage === null ? "미입력" : `${homeworkAverage}%`}
+              {homeworkAverage === null ? "-" : `${homeworkAverage}%`}
             </Text>
 
             {homeworkAverage !== null && (
@@ -210,57 +214,6 @@ export default function WeekSummaryCard({
                 }}
               >
                 {getAchievementLabel(homeworkAverage)}
-              </Tag>
-            )}
-          </div>
-        </div>
-
-        {/* =====================================================
-            당일 평가
-        ===================================================== */}
-
-        <div
-          style={{
-            ...reportItemStyle,
-
-            background:
-              dailyAverage === null
-                ? "#fafafa"
-                : getAchievementBackground(dailyAverage),
-
-            border:
-              dailyAverage === null
-                ? "1px solid #e5e7eb"
-                : `1px solid ${getAchievementColor(dailyAverage)}`,
-          }}
-        >
-          <Text style={labelStyle}>당일 평가</Text>
-
-          <div style={valueWrapStyle}>
-            <Text
-              style={{
-                ...valueStyle,
-
-                color:
-                  dailyAverage === null
-                    ? "#667085"
-                    : getAchievementColor(dailyAverage),
-              }}
-            >
-              {dailyAverage === null ? "미입력" : `${dailyAverage}%`}
-            </Text>
-
-            {dailyAverage !== null && (
-              <Tag
-                color={getAchievementTagColor(dailyAverage)}
-                style={{
-                  margin: 0,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  lineHeight: "20px",
-                }}
-              >
-                {getAchievementLabel(dailyAverage)}
               </Tag>
             )}
           </div>
@@ -299,7 +252,7 @@ export default function WeekSummaryCard({
               }}
             >
               {record.reviewTestScore === null
-                ? "미입력"
+                ? "-"
                 : `${record.reviewTestScore}점`}
             </Text>
 
@@ -339,7 +292,7 @@ export default function WeekSummaryCard({
                 color: "#475467",
               }}
             >
-              {record.memorizationAchievement || "미입력"}
+              {record.memorizationAchievement || "-"}
             </Text>
           </div>
         </div>
@@ -374,7 +327,7 @@ export default function WeekSummaryCard({
 
           <Text
             ellipsis={{
-              tooltip: record.teacherComment || "쌤 한마디 미입력",
+              tooltip: record.teacherComment || "쌤 한마디",
             }}
             style={{
               display: "block",
@@ -387,7 +340,7 @@ export default function WeekSummaryCard({
               color: "#475467",
             }}
           >
-            {record.teacherComment || "쌤 한마디 미입력"}
+            {record.teacherComment || "쌤 한마디"}
           </Text>
         </div>
       </Card>
@@ -434,7 +387,7 @@ export default function WeekSummaryCard({
             fontSize: 17,
           }}
         >
-          {record.weekNumber}주차
+          {record.weekLabel}
         </Text>
 
         {selected && (
@@ -450,18 +403,6 @@ export default function WeekSummaryCard({
         )}
       </Row>
 
-      {/* 주차 표시 */}
-      <Text
-        type="secondary"
-        style={{
-          display: "block",
-          marginTop: 2,
-          fontSize: 12,
-        }}
-      >
-        {record.weekLabel}
-      </Text>
-
       {/* 진도 */}
       <Text
         style={{
@@ -470,7 +411,7 @@ export default function WeekSummaryCard({
           fontWeight: 600,
         }}
       >
-        {record.progress || "진도 미입력"}
+        {record.progress || "진도"}
       </Text>
 
       <Space
@@ -481,47 +422,6 @@ export default function WeekSummaryCard({
           marginTop: 8,
         }}
       >
-        {/* 숙제 */}
-        <div
-          style={{
-            ...achievementItemStyle,
-
-            background: getAchievementBackground(homeworkAverage),
-
-            border: `1px solid ${getAchievementColor(homeworkAverage)}`,
-          }}
-        >
-          <Row justify="space-between" align="middle" wrap={false}>
-            <Text strong style={{ fontSize: 12 }}>
-              숙제
-            </Text>
-
-            <Space size={4}>
-              <Text
-                strong
-                style={{
-                  fontSize: 13,
-
-                  color: getAchievementColor(homeworkAverage),
-                }}
-              >
-                {homeworkAverage === null ? "-" : `${homeworkAverage}%`}
-              </Text>
-
-              <Tag
-                color={getAchievementTagColor(homeworkAverage)}
-                style={{
-                  margin: 0,
-                  fontSize: 10,
-                  lineHeight: "18px",
-                }}
-              >
-                {getAchievementLabel(homeworkAverage)}
-              </Tag>
-            </Space>
-          </Row>
-        </div>
-
         {/* 당일 평가 */}
         <div
           style={{
@@ -558,6 +458,46 @@ export default function WeekSummaryCard({
                 }}
               >
                 {getAchievementLabel(dailyAverage)}
+              </Tag>
+            </Space>
+          </Row>
+        </div>
+        {/* 숙제 */}
+        <div
+          style={{
+            ...achievementItemStyle,
+
+            background: getAchievementBackground(homeworkAverage),
+
+            border: `1px solid ${getAchievementColor(homeworkAverage)}`,
+          }}
+        >
+          <Row justify="space-between" align="middle" wrap={false}>
+            <Text strong style={{ fontSize: 12 }}>
+              숙제
+            </Text>
+
+            <Space size={4}>
+              <Text
+                strong
+                style={{
+                  fontSize: 13,
+
+                  color: getAchievementColor(homeworkAverage),
+                }}
+              >
+                {homeworkAverage === null ? "-" : `${homeworkAverage}%`}
+              </Text>
+
+              <Tag
+                color={getAchievementTagColor(homeworkAverage)}
+                style={{
+                  margin: 0,
+                  fontSize: 10,
+                  lineHeight: "18px",
+                }}
+              >
+                {getAchievementLabel(homeworkAverage)}
               </Tag>
             </Space>
           </Row>
@@ -625,7 +565,7 @@ export default function WeekSummaryCard({
                 fontWeight: 500,
               }}
             >
-              {record.memorizationAchievement || "미입력"}
+              {record.memorizationAchievement || "-"}
             </Text>
           </Row>
         </div>
@@ -641,14 +581,14 @@ export default function WeekSummaryCard({
           <Text
             type="secondary"
             ellipsis={{
-              tooltip: record.teacherComment || "쌤 한마디 미입력",
+              tooltip: record.teacherComment || "쌤 한마디",
             }}
             style={{
               display: "block",
               fontSize: 11,
             }}
           >
-            💬 {record.teacherComment || "쌤 한마디 미입력"}
+            💬 {record.teacherComment || "쌤 한마디"}
           </Text>
         </div>
       </Space>

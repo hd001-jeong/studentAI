@@ -64,7 +64,7 @@ export default function MemorizationSection({
               fontSize: 15,
             }}
           >
-            {achievement ?? "미입력"}
+            {achievement ?? "-"}
           </Tag>
         </Col>
       </Row>

@@ -1,4 +1,8 @@
-import { FileTextOutlined, UserOutlined } from "@ant-design/icons";
+import {
+  FileTextOutlined,
+  SettingOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 import { Layout, Menu } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
@@ -12,9 +16,7 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const selectedKey = location.pathname.startsWith("/reports")
-    ? "/reports"
-    : "/students";
+  const selectedKey = location.pathname;
 
   return (
     <Layout
@@ -35,6 +37,7 @@ export default function MainLayout() {
           <Menu
             mode="inline"
             selectedKeys={[selectedKey]}
+            defaultOpenKeys={["admin"]}
             style={{
               height: "100%",
               borderInlineEnd: 0,
@@ -50,6 +53,25 @@ export default function MainLayout() {
                 key: "/reports",
                 icon: <FileTextOutlined />,
                 label: "리포트",
+              },
+              {
+                key: "admin",
+                icon: <SettingOutlined />,
+                label: "관리자",
+                children: [
+                  {
+                    key: "/notices",
+                    label: "공지사항",
+                  },
+                  {
+                    key: "/admin/single-data",
+                    label: "단일 데이터",
+                  },
+                  {
+                    key: "/admin/multi-data",
+                    label: "다중 데이터",
+                  },
+                ],
               },
             ]}
             onClick={({ key }) => {

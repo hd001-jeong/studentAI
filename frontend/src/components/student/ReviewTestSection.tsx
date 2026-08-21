@@ -148,7 +148,7 @@ export default function ReviewTestSection({
           }}
         >
           {reviewScore === null
-            ? "미입력"
+            ? "-"
             : `${reviewScore}점 · ${getAchievementLabel(reviewScore)}`}
         </Tag>
       </Row>

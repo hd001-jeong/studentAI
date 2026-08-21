@@ -101,6 +101,10 @@ export const MEMORIZATION_OPTIONS: Array<{
   value: Exclude<MemorizationAchievement, null>;
 }> = [
   {
+    label: "선택",
+    value: "",
+  },
+  {
     label: "통과",
     value: "통과",
   },

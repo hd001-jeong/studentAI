@@ -65,7 +65,7 @@ export function getAchievementTagColor(
 
 export function getAchievementLabel(score: number | null): string {
   if (score === null) {
-    return "미입력";
+    return "";
   }
 
   if (score >= ACHIEVEMENT_GOOD_MIN_SCORE) {

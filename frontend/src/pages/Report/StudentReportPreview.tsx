@@ -35,31 +35,31 @@ const StudentReportPreview = forwardRef<
     .sort((a, b) => a.weekNumber - b.weekNumber)
     .slice(0, 8);
 
-  //   =========================================================
-  //   8주 PDF 레이아웃 테스트용
-  //   테스트 끝나면 이 부분 삭제하고 위 실제 사용용 코드 활성화
-  //   =========================================================
+  // =========================================================
+  // 8주 PDF 레이아웃 테스트용
+  // 테스트 끝나면 이 부분 삭제하고 위 실제 사용용 코드 활성화
+  // =========================================================
 
-  //   const baseRecord = records[0];
+  // const baseRecord = records[0];
 
-  //   const sortedRecords = baseRecord
-  //     ? Array.from(
-  //         {
-  //           length: 8,
-  //         },
-  //         (_, index) => ({
-  //           ...baseRecord,
+  // const sortedRecords = baseRecord
+  //   ? Array.from(
+  //       {
+  //         length: 8,
+  //       },
+  //       (_, index) => ({
+  //         ...baseRecord,
 
-  //           recordId: `test-${index + 1}`,
+  //         recordId: `test-${index + 1}`,
 
-  //           weekNumber: index + 1,
+  //         weekNumber: index + 1,
 
-  //           weekLabel: `${index + 1}주차`,
+  //         weekLabel: `${index + 1}주차`,
 
-  //           progress: `테스트 진도 ${index + 1}`,
-  //         }),
-  //       )
-  //     : [];
+  //         progress: `테스트 진도 ${index + 1}`,
+  //       }),
+  //     )
+  //   : [];
 
   return (
     <div
@@ -73,8 +73,8 @@ const StudentReportPreview = forwardRef<
       }}
     >
       {/* =====================================================
-            학원 헤더
-        ===================================================== */}
+          학원 헤더
+      ===================================================== */}
 
       <Card
         style={{
@@ -132,7 +132,7 @@ const StudentReportPreview = forwardRef<
                   marginTop: 2,
                   fontSize: 13,
                   fontWeight: 600,
-                  color: "#ef5350",
+                  color: "#8410b3",
                 }}
               >
                 학생관리카드
@@ -172,8 +172,8 @@ const StudentReportPreview = forwardRef<
       </Card>
 
       {/* =====================================================
-            학생 정보
-        ===================================================== */}
+          학생 정보
+      ===================================================== */}
 
       <Card
         style={{
@@ -201,7 +201,7 @@ const StudentReportPreview = forwardRef<
               strong
               style={{
                 display: "block",
-                fontSize: 22,
+                fontSize: 40,
                 lineHeight: 1.3,
                 color: "#1f1f1f",
               }}
@@ -242,35 +242,8 @@ const StudentReportPreview = forwardRef<
       </Card>
 
       {/* =====================================================
-            학습 현황
-            PDF 전용 2열 × 4행
-        ===================================================== */}
-
-      <WeekSummarySection
-        records={sortedRecords.slice(0, 8)}
-        selectedRecordId=""
-        onRecordChange={() => {}}
-        onDetailOpen={() => {}}
-        readOnly
-        columns={2}
-        reportMode
-      />
-
-      {/* =====================================================
-            전체 상태
-        ===================================================== */}
-
-      <div
-        style={{
-          marginTop: 10,
-        }}
-      >
-        <StudentOverallStatus summary={summary} />
-      </div>
-
-      {/* =====================================================
-            Notice
-        ===================================================== */}
+          Notice
+      ===================================================== */}
 
       <Card
         style={{
@@ -316,7 +289,7 @@ const StudentReportPreview = forwardRef<
         }
         styles={{
           header: {
-            minHeight: 42,
+            minHeight: 70,
           },
 
           body: {
@@ -326,23 +299,58 @@ const StudentReportPreview = forwardRef<
           },
         }}
       >
-        {/* 
-              일부러 빈 영역으로 유지.
-              출력 후 직접 적거나,
-              추후 구글시트 Notice를 출력 가능.
-          */}
-
-        <div
-          style={{
-            minHeight: 72,
-            borderBottom: "1px solid #e5e7eb",
-          }}
-        />
+        {sortedRecords
+          .filter((record) => record.notice?.trim())
+          .map((record) => (
+            <div
+              key={record.recordId}
+              style={{
+                marginBottom: 10,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 15,
+                  lineHeight: 1.7,
+                  whiteSpace: "pre-wrap",
+                }}
+              >
+                {record.notice}
+              </Text>
+            </div>
+          ))}
       </Card>
 
       {/* =====================================================
-            하단 안내
-        ===================================================== */}
+          학습 현황
+          PDF 전용 2열 × 4행
+      ===================================================== */}
+
+      <WeekSummarySection
+        records={sortedRecords.slice(0, 8)}
+        selectedRecordId=""
+        onRecordChange={() => {}}
+        onDetailOpen={() => {}}
+        readOnly
+        columns={2}
+        reportMode
+      />
+
+      {/* =====================================================
+          전체 상태
+      ===================================================== */}
+
+      <div
+        style={{
+          marginTop: 10,
+        }}
+      >
+        <StudentOverallStatus summary={summary} />
+      </div>
+
+      {/* =====================================================
+          하단 안내
+      ===================================================== */}
 
       <div
         style={{
