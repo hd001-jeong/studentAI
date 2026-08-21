@@ -102,7 +102,14 @@ export default function ReviewTestSection({
       <Row gutter={[12, 0]}>
         <Col xs={24} lg={6}>
           <Form.Item label="복습 테스트명" name="reviewTest">
-            <Input readOnly />
+            <Input
+              readOnly
+              style={{
+                backgroundColor: "#f5f5f5",
+                color: "#595959",
+                cursor: "default",
+              }}
+            />
           </Form.Item>
         </Col>
 

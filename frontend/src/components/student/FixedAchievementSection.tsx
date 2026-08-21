@@ -66,7 +66,14 @@ export default function FixedAchievementSection({
                     marginBottom: 10,
                   }}
                 >
-                  <Input readOnly />
+                  <Input
+                    readOnly
+                    style={{
+                      backgroundColor: "#f0f7ff",
+                      color: "#595959",
+                      cursor: "default",
+                    }}
+                  />
                 </Form.Item>
 
                 <Text

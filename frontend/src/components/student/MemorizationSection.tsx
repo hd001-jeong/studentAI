@@ -35,13 +35,27 @@ export default function MemorizationSection({
       <Row gutter={[12, 0]}>
         <Col xs={24} lg={8}>
           <Form.Item label="암기반 1" name="memorizationClass1">
-            <Input />
+            <Input
+              readOnly
+              style={{
+                backgroundColor: "#f0f7ff",
+                color: "#595959",
+                cursor: "default",
+              }}
+            />
           </Form.Item>
         </Col>
 
         <Col xs={24} lg={8}>
           <Form.Item label="암기반 2" name="memorizationClass2">
-            <Input />
+            <Input
+              readOnly
+              style={{
+                backgroundColor: "#f0f7ff",
+                color: "#595959",
+                cursor: "default",
+              }}
+            />
           </Form.Item>
         </Col>
 
