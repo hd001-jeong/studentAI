@@ -89,6 +89,7 @@ function StudentHeaderCard({
             options={studentOptions}
             onChange={onStudentChange}
             placeholder="학생을 선택해주세요."
+            listHeight={400}
             style={{
               width: "100%",
               marginTop: 6,
