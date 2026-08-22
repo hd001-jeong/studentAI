@@ -3,20 +3,31 @@ import {
   SettingOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { Layout, Menu } from "antd";
+import { Grid, Layout, Menu } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 import AppHeader from "@/components/layout/AppHeader";
 
 const { Sider, Content } = Layout;
+const { useBreakpoint } = Grid;
 
 const TEACHER_NAME = "박현민";
 
 export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const screens = useBreakpoint();
 
   const selectedKey = location.pathname;
+
+  const [collapsed, setCollapsed] = useState(false);
+
+  const isMobile = !screens.md;
+
+  useEffect(() => {
+    setCollapsed(isMobile);
+  }, [isMobile]);
 
   return (
     <Layout
@@ -29,6 +40,12 @@ export default function MainLayout() {
       <Layout>
         <Sider
           width={180}
+          collapsedWidth={64}
+          collapsed={collapsed}
+          collapsible
+          onCollapse={(value) => {
+            setCollapsed(value);
+          }}
           theme="light"
           style={{
             borderRight: "1px solid #f0f0f0",
@@ -38,6 +55,7 @@ export default function MainLayout() {
             mode="inline"
             selectedKeys={[selectedKey]}
             defaultOpenKeys={["admin"]}
+            inlineCollapsed={collapsed}
             style={{
               height: "100%",
               borderInlineEnd: 0,
@@ -84,6 +102,7 @@ export default function MainLayout() {
           style={{
             background: "#f5f7fa",
             padding: 18,
+            minWidth: 0,
           }}
         >
           <Outlet />
