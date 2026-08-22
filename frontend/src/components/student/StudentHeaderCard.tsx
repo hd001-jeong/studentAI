@@ -10,6 +10,9 @@ interface SelectOption {
 }
 
 interface StudentHeaderCardProps {
+  selectedSchool: string;
+  schoolOptions: SelectOption[];
+
   selectedGrade: string;
   gradeOptions: SelectOption[];
 
@@ -18,16 +21,20 @@ interface StudentHeaderCardProps {
 
   selectedRecord: LessonRecord;
 
+  onSchoolChange: (school: string) => void;
   onGradeChange: (grade: string) => void;
   onStudentChange: (studentId: string) => void;
 }
 
 function StudentHeaderCard({
+  selectedSchool,
+  schoolOptions,
   selectedGrade,
   gradeOptions,
   selectedStudentId,
   studentOptions,
   selectedRecord,
+  onSchoolChange,
   onGradeChange,
   onStudentChange,
 }: StudentHeaderCardProps) {
@@ -39,8 +46,24 @@ function StudentHeaderCard({
       }}
     >
       <Row gutter={[16, 12]} align="middle">
+        {/* 학교 선택 */}
+        <Col xs={24} sm={12} lg={4}>
+          <Text strong>학교 선택</Text>
+
+          <Select
+            value={selectedSchool || undefined}
+            options={schoolOptions}
+            onChange={onSchoolChange}
+            placeholder="학교 선택"
+            style={{
+              width: "100%",
+              marginTop: 6,
+            }}
+          />
+        </Col>
+
         {/* 학년 선택 */}
-        <Col xs={24} sm={8} lg={4}>
+        <Col xs={24} sm={12} lg={4}>
           <Text strong>학년 선택</Text>
 
           <Select
@@ -56,7 +79,7 @@ function StudentHeaderCard({
         </Col>
 
         {/* 학생 선택 */}
-        <Col xs={24} sm={16} lg={6}>
+        <Col xs={24} sm={24} lg={6}>
           <Text strong>학생 선택</Text>
 
           <Select
@@ -74,7 +97,7 @@ function StudentHeaderCard({
         </Col>
 
         {/* 학생 기본 정보 */}
-        <Col xs={24} lg={7}>
+        <Col xs={24} lg={5}>
           <Space>
             <Avatar size={42}>{selectedRecord.studentName?.charAt(0)}</Avatar>
 
@@ -107,12 +130,13 @@ function StudentHeaderCard({
         </Col>
 
         {/* 현재 선택 수업 정보 */}
-        <Col xs={24} lg={7}>
+        <Col xs={24} lg={5}>
           <div
             style={{
               display: "flex",
               justifyContent: "flex-end",
               gap: 6,
+              flexWrap: "wrap",
             }}
           >
             <Tag

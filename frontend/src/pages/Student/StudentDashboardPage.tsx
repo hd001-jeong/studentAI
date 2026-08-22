@@ -48,8 +48,13 @@ const centeredPageStyle = {
 export default function StudentDashboardPage() {
   const [saving, setSaving] = useState(false);
 
+  // 학교
+  const [selectedSchool, setSelectedSchool] = useState("ALL");
+
+  // 학년
   const [selectedGrade, setSelectedGrade] = useState("ALL");
 
+  // 학생
   const [selectedStudentId, setSelectedStudentId] = useState("");
 
   const [selectedRecordId, setSelectedRecordId] = useState("DEFAULT_WEEK_1");
@@ -86,9 +91,6 @@ export default function StudentDashboardPage() {
 
   /*
    * 선택한 학생의 수업 기록 조회
-   *
-   * selectedStudentId가 빈 값이면
-   * useLessonRecordsQuery 내부에서 조회하지 않는다.
    */
   const {
     data: fetchedLessonRecords = [],
@@ -115,11 +117,47 @@ export default function StudentDashboardPage() {
   }, [selectedStudentId, fetchedLessonRecords]);
 
   /*
+   * 학교 목록
+   *
+   * 학생 데이터의 schoolName을 기준으로 자동 생성
+   */
+  const schoolOptions = useMemo(() => {
+    const schools = Array.from(
+      new Set(students.map((student) => student.schoolName).filter(Boolean)),
+    );
+
+    return [
+      {
+        value: "ALL",
+        label: "전체",
+      },
+
+      ...schools.map((school) => ({
+        value: school,
+        label: school,
+      })),
+    ];
+  }, [students]);
+
+  /*
    * 학년 목록
+   *
+   * 선택한 학교에 존재하는 학년만 표시
    */
   const gradeOptions = useMemo(() => {
     const grades = Array.from(
-      new Set(students.map((student) => student.grade).filter(Boolean)),
+      new Set(
+        students
+          .filter((student) => {
+            if (selectedSchool === "ALL") {
+              return true;
+            }
+
+            return student.schoolName === selectedSchool;
+          })
+          .map((student) => student.grade)
+          .filter(Boolean),
+      ),
     );
 
     return [
@@ -133,19 +171,23 @@ export default function StudentDashboardPage() {
         label: grade,
       })),
     ];
-  }, [students]);
+  }, [students, selectedSchool]);
 
   /*
    * 학생 목록
+   *
+   * 학교 + 학년 조건으로 필터링
    */
   const studentOptions = useMemo(() => {
     return students
       .filter((student) => {
-        if (selectedGrade === "ALL") {
-          return true;
-        }
+        const schoolMatched =
+          selectedSchool === "ALL" || student.schoolName === selectedSchool;
 
-        return student.grade === selectedGrade;
+        const gradeMatched =
+          selectedGrade === "ALL" || student.grade === selectedGrade;
+
+        return schoolMatched && gradeMatched;
       })
       .map((student) => ({
         value: student.studentId,
@@ -154,31 +196,40 @@ export default function StudentDashboardPage() {
           `${student.studentName} ` +
           `(${student.schoolName}/${student.grade})`,
       }));
-  }, [students, selectedGrade]);
+  }, [students, selectedSchool, selectedGrade]);
+
+  /*
+   * 학교 변경
+   *
+   * 학교가 변경되면
+   * 학년 / 학생 선택 초기화
+   */
+  const handleSchoolChange = (school: string) => {
+    setSelectedSchool(school);
+
+    setSelectedGrade("ALL");
+
+    setSelectedStudentId("");
+
+    setSelectedRecordId("DEFAULT_WEEK_1");
+  };
+
+  /*
+   * 학년 변경
+   */
+  const handleGradeChange = (grade: string) => {
+    setSelectedGrade(grade);
+
+    setSelectedStudentId("");
+
+    setSelectedRecordId("DEFAULT_WEEK_1");
+  };
 
   /*
    * 학생 변경
    */
   const handleStudentChange = (studentId: string) => {
     setSelectedStudentId(studentId);
-
-    /*
-     * 조회가 끝날 때까지
-     * 기본 1주차 표시
-     */
-    setSelectedRecordId("DEFAULT_WEEK_1");
-  };
-
-  /*
-   * 학년 변경
-   *
-   * 학년만 변경하고
-   * 학생을 자동 선택하지 않는다.
-   */
-  const handleGradeChange = (grade: string) => {
-    setSelectedGrade(grade);
-
-    setSelectedStudentId("");
 
     setSelectedRecordId("DEFAULT_WEEK_1");
   };
@@ -341,7 +392,6 @@ export default function StudentDashboardPage() {
 
       form.setFieldsValue(savedRecord);
 
-      // 저장된 최신 데이터 다시 조회
       await refetchLessonRecords();
 
       messageApi.success(`${savedRecord.weekLabel} 기록을 저장했습니다.`);
@@ -404,6 +454,7 @@ export default function StudentDashboardPage() {
   return (
     <>
       {contextHolder}
+
       <div
         style={{
           width: "100%",
@@ -413,11 +464,14 @@ export default function StudentDashboardPage() {
       >
         <Form form={form} layout="vertical" requiredMark={false}>
           <StudentHeaderCard
+            selectedSchool={selectedSchool}
+            schoolOptions={schoolOptions}
             selectedGrade={selectedGrade}
             gradeOptions={gradeOptions}
             selectedStudentId={selectedStudentId}
             studentOptions={studentOptions}
             selectedRecord={selectedRecord}
+            onSchoolChange={handleSchoolChange}
             onGradeChange={handleGradeChange}
             onStudentChange={handleStudentChange}
           />
