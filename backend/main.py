@@ -12,6 +12,8 @@ from student_service import (
     read_lesson_records,
     read_lesson_records_batch,
     update_lesson_record,
+    read_notice,
+    update_notice,
 )
 
 
@@ -88,6 +90,12 @@ class LessonRecordUpdateRequest(BaseModel):
 
     teacherComment: str = ""
     notice: str = ""
+
+
+class NoticeUpdateRequest(BaseModel):
+    schoolName: str
+    grade: str
+    notice: str
 
 
 # =========================================================
@@ -188,6 +196,56 @@ def update_student_record(
         return update_lesson_record(
             record_id,
             request.model_dump(),
+        )
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=404,
+            detail=str(error),
+        ) from error
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        ) from error
+
+
+    # =========================================================
+# 학교 / 학년별 공지사항 조회
+# =========================================================
+
+@app.get("/notices")
+def get_notice(
+    schoolName: str,
+    grade: str,
+):
+    try:
+        return read_notice(
+            schoolName,
+            grade,
+        )
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        ) from error
+
+
+# =========================================================
+# 학교 / 학년별 공지사항 수정
+# =========================================================
+
+@app.put("/notices")
+def update_notice_api(
+    request: NoticeUpdateRequest,
+):
+    try:
+        return update_notice(
+            request.schoolName,
+            request.grade,
+            request.notice,
         )
 
     except ValueError as error:
