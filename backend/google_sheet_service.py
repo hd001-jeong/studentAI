@@ -8,6 +8,8 @@ from google_sheet.lesson_sheet import (
 
 from google_sheet.notice_sheet import (
     read_notice_from_sheet,
+    read_notice_history_from_sheet,
+    read_notice_weeks_from_sheet,
     update_notice_in_sheet,
 )
 

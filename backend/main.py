@@ -13,6 +13,8 @@ from student_service import (
     read_lesson_records_batch,
     update_lesson_record,
     read_notice,
+    read_notice_history,
+    read_notice_weeks,
     update_notice,
 )
 
@@ -54,7 +56,6 @@ class LessonRecordsBatchRequest(BaseModel):
 
 class LessonRecordUpdateRequest(BaseModel):
     recordId: str
-
     number: int | None = None
     category: str = ""
 
@@ -95,6 +96,7 @@ class LessonRecordUpdateRequest(BaseModel):
 class NoticeUpdateRequest(BaseModel):
     schoolName: str
     grade: str
+    weekLabel: str
     notice: str
 
 
@@ -211,17 +213,17 @@ def update_student_record(
         ) from error
 
 
-    # =========================================================
-# 학교 / 학년별 공지사항 조회
+# =========================================================
+# 학교 / 학년별 주차 목록 조회
 # =========================================================
 
-@app.get("/notices")
-def get_notice(
+@app.get("/notices/weeks")
+def get_notice_weeks(
     schoolName: str,
     grade: str,
 ):
     try:
-        return read_notice(
+        return read_notice_weeks(
             schoolName,
             grade,
         )
@@ -234,7 +236,53 @@ def get_notice(
 
 
 # =========================================================
-# 학교 / 학년별 공지사항 수정
+# 학교 / 학년별 최근 공지사항 조회
+# =========================================================
+
+@app.get("/notices/history")
+def get_notice_history(
+    schoolName: str,
+    grade: str,
+):
+    try:
+        return read_notice_history(
+            schoolName,
+            grade,
+        )
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        ) from error
+
+
+# =========================================================
+# 학교 / 학년 / 주차별 공지사항 조회
+# =========================================================
+
+@app.get("/notices")
+def get_notice(
+    schoolName: str,
+    grade: str,
+    weekLabel: str,
+):
+    try:
+        return read_notice(
+            schoolName,
+            grade,
+            weekLabel,
+        )
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        ) from error
+
+
+# =========================================================
+# 학교 / 학년 / 주차별 공지사항 수정
 # =========================================================
 
 @app.put("/notices")
@@ -245,6 +293,7 @@ def update_notice_api(
         return update_notice(
             request.schoolName,
             request.grade,
+            request.weekLabel,
             request.notice,
         )
 
