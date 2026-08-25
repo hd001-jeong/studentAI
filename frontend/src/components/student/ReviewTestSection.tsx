@@ -20,6 +20,7 @@ import {
 const { Text } = Typography;
 
 interface ReviewTestSectionProps {
+  reviewScore: number | null;
   reviewQuestionCount: number | null;
 }
 
@@ -81,39 +82,19 @@ function NumberInputWithUnit({
   );
 }
 
-function calculateReviewScore(
-  correctCount: number | null | undefined,
-  questionCount: number | null | undefined,
-): number | null {
-  if (
-    correctCount === null ||
-    correctCount === undefined ||
-    questionCount === null ||
-    questionCount === undefined ||
-    questionCount === 0
-  ) {
-    return null;
-  }
-
-  return Math.round((correctCount / questionCount) * 100);
-}
-
 export default function ReviewTestSection({
+  reviewScore,
   reviewQuestionCount,
 }: ReviewTestSectionProps) {
-  const form = Form.useFormInstance();
-
-  const reviewCorrectCount = Form.useWatch("reviewCorrectCount", form);
-
-  const reviewScore = calculateReviewScore(
-    reviewCorrectCount,
-    reviewQuestionCount,
-  );
-
   return (
     <Card
       title={
-        <Text strong style={{ fontSize: 18 }}>
+        <Text
+          strong
+          style={{
+            fontSize: 18,
+          }}
+        >
           복습 테스트
         </Text>
       }
@@ -162,10 +143,9 @@ export default function ReviewTestSection({
         </Col>
 
         <Col xs={24} sm={8} lg={4}>
-          <Form.Item label="복습 테스트 점수">
+          <Form.Item label="복습 테스트 점수" name="reviewTestScore">
             <Input
               readOnly
-              value={reviewScore ?? ""}
               style={{
                 backgroundColor: "#f5f5f5",
                 color: "#595959",
