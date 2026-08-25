@@ -20,11 +20,12 @@ import {
 const { Text } = Typography;
 
 interface ReviewTestSectionProps {
-  reviewScore: number | null;
   reviewQuestionCount: number | null;
 }
 
 interface NumberInputWithUnitProps {
+  value?: number | null;
+  onChange?: (value: number | null) => void;
   readOnly?: boolean;
   unit: string;
   disabled?: boolean;
@@ -33,7 +34,9 @@ interface NumberInputWithUnitProps {
 }
 
 function NumberInputWithUnit({
-  readOnly,
+  value,
+  onChange,
+  readOnly = false,
   unit,
   disabled = false,
   min,
@@ -42,7 +45,9 @@ function NumberInputWithUnit({
   return (
     <Flex align="center">
       <InputNumber
-        readOnly={!readOnly}
+        value={value}
+        onChange={onChange}
+        readOnly={readOnly}
         min={min}
         max={max}
         precision={0}
@@ -76,19 +81,39 @@ function NumberInputWithUnit({
   );
 }
 
+function calculateReviewScore(
+  correctCount: number | null | undefined,
+  questionCount: number | null | undefined,
+): number | null {
+  if (
+    correctCount === null ||
+    correctCount === undefined ||
+    questionCount === null ||
+    questionCount === undefined ||
+    questionCount === 0
+  ) {
+    return null;
+  }
+
+  return Math.round((correctCount / questionCount) * 100);
+}
+
 export default function ReviewTestSection({
-  reviewScore,
   reviewQuestionCount,
 }: ReviewTestSectionProps) {
+  const form = Form.useFormInstance();
+
+  const reviewCorrectCount = Form.useWatch("reviewCorrectCount", form);
+
+  const reviewScore = calculateReviewScore(
+    reviewCorrectCount,
+    reviewQuestionCount,
+  );
+
   return (
     <Card
       title={
-        <Text
-          strong
-          style={{
-            fontSize: 18,
-          }}
-        >
+        <Text strong style={{ fontSize: 18 }}>
           복습 테스트
         </Text>
       }
@@ -115,14 +140,20 @@ export default function ReviewTestSection({
 
         <Col xs={24} sm={8} lg={4}>
           <Form.Item label="복습 문항 개수" name="reviewQuestionCount">
-            <NumberInputWithUnit min={0} unit="문항" readOnly={false} />
+            <Input
+              readOnly
+              style={{
+                backgroundColor: "#f5f5f5",
+                color: "#595959",
+                cursor: "default",
+              }}
+            />
           </Form.Item>
         </Col>
 
         <Col xs={24} sm={8} lg={4}>
           <Form.Item label="복습 맞은 개수" name="reviewCorrectCount">
             <NumberInputWithUnit
-              readOnly={true}
               min={0}
               max={reviewQuestionCount ?? undefined}
               unit="개"
@@ -131,8 +162,16 @@ export default function ReviewTestSection({
         </Col>
 
         <Col xs={24} sm={8} lg={4}>
-          <Form.Item label="복습 테스트 점수" name="reviewTestScore">
-            <NumberInputWithUnit disabled unit="점" />
+          <Form.Item label="복습 테스트 점수">
+            <Input
+              readOnly
+              value={reviewScore ?? ""}
+              style={{
+                backgroundColor: "#f5f5f5",
+                color: "#595959",
+                cursor: "default",
+              }}
+            />
           </Form.Item>
         </Col>
 

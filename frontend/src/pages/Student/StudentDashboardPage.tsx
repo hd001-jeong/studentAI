@@ -254,7 +254,9 @@ export default function StudentDashboardPage() {
 
   /*
    * 학생 기록 조회 완료 후
-   * 첫 번째 실제 기록 선택
+   *
+   * 현재 선택된 기록이 있으면 유지하고,
+   * 선택된 기록이 없을 때만 첫 번째 기록 선택
    */
   useEffect(() => {
     if (!selectedStudentId) {
@@ -269,8 +271,14 @@ export default function StudentDashboardPage() {
       (a, b) => a.weekNumber - b.weekNumber,
     );
 
-    setSelectedRecordId(sortedRecords[0].recordId);
-  }, [selectedStudentId, fetchedLessonRecords]);
+    const hasSelectedRecord = sortedRecords.some(
+      (record) => record.recordId === selectedRecordId,
+    );
+
+    if (!hasSelectedRecord) {
+      setSelectedRecordId(sortedRecords[0].recordId);
+    }
+  }, [selectedStudentId, fetchedLessonRecords, selectedRecordId]);
 
   /*
    * 현재 선택된 주차
