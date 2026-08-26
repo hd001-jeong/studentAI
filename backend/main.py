@@ -6,6 +6,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from google_sheet.schedule import read_schedules
+
 from student_service import (
     login_teacher,
     read_students,
@@ -39,6 +41,10 @@ app.add_middleware(
 )
 
 
+# =========================================================
+# Request Models
+# =========================================================
+
 class TeacherLoginRequest(BaseModel):
     teacherName: str
     password: str
@@ -58,12 +64,10 @@ class LessonRecordUpdateRequest(BaseModel):
     recordId: str
     number: int | None = None
     category: str = ""
-
     weekNumber: int
     weekLabel: str
     progress: str
     lessonDate: str
-
     studentId: str
     studentName: str
     schoolName: str
@@ -205,6 +209,22 @@ def update_student_record(
             status_code=404,
             detail=str(error),
         ) from error
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        ) from error
+
+
+# =========================================================
+# 일정 목록 조회
+# =========================================================
+
+@app.get("/schedules")
+def get_schedules():
+    try:
+        return read_schedules()
 
     except Exception as error:
         raise HTTPException(
