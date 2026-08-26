@@ -117,7 +117,6 @@ export default function StudentOverallStatus({
             title="당일평가 평균"
             score={summary.dailyAverage}
             suffix="%"
-            useBackground={false}
           />
         </Col>
 

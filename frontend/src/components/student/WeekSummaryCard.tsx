@@ -36,15 +36,14 @@ export default function WeekSummaryCard({
   // =========================================================
   // PDF / 리포트 전용 디자인
   // =========================================================
-
   if (reportMode) {
     const reportItemStyle = {
       display: "grid",
       gridTemplateColumns: "45% 55%",
       alignItems: "center",
-      minHeight: 38,
-      marginTop: 5,
-      padding: "6px 10px",
+      minHeight: 44,
+      marginTop: 6,
+      padding: "8px 12px",
       borderRadius: 8,
       border: "1px solid #e5e7eb",
       background: "#fafafa",
@@ -52,9 +51,9 @@ export default function WeekSummaryCard({
 
     const labelStyle = {
       fontFamily: '"Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif',
-
-      fontSize: 20,
+      fontSize: 22,
       fontWeight: 900,
+      lineHeight: "28px",
       color: "#222222",
     };
 
@@ -62,16 +61,24 @@ export default function WeekSummaryCard({
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      gap: 6,
+      gap: 8,
       minWidth: 0,
     };
 
     const valueStyle = {
       fontFamily: '"Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif',
-
-      fontSize: 20,
+      fontSize: 22,
       fontWeight: 900,
+      lineHeight: "28px",
       color: "#111111",
+    };
+
+    const reportTagStyle = {
+      margin: 0,
+      fontSize: 16,
+      fontWeight: 700,
+      lineHeight: "24px",
+      paddingInline: 7,
     };
 
     return (
@@ -87,29 +94,29 @@ export default function WeekSummaryCard({
         }}
         styles={{
           body: {
-            padding: 10,
+            padding: 12,
           },
         }}
       >
         {/* =====================================================
-    주차 + 진도
-===================================================== */}
-
+            주차 + 진도
+        ===================================================== */}
         <div
           style={{
-            padding: "8px 10px",
+            padding: "10px 12px",
             textAlign: "center",
             background: "#e6f4ff",
             borderRadius: 7,
-            marginBottom: 6,
+            marginBottom: 7,
           }}
         >
           <Text
             style={{
               fontFamily:
                 '"Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif',
-              fontSize: 17,
+              fontSize: 20,
               fontWeight: 800,
+              lineHeight: "26px",
               color: "#1456a0",
             }}
           >
@@ -117,19 +124,17 @@ export default function WeekSummaryCard({
             {record.weekNumber}주차) / {record.progress || "진도"}
           </Text>
         </div>
+
         {/* =====================================================
             당일 평가
         ===================================================== */}
-
         <div
           style={{
             ...reportItemStyle,
-
             background:
               dailyAverage === null
                 ? "#fafafa"
                 : getAchievementBackground(dailyAverage),
-
             border:
               dailyAverage === null
                 ? "1px solid #e5e7eb"
@@ -142,7 +147,6 @@ export default function WeekSummaryCard({
             <Text
               style={{
                 ...valueStyle,
-
                 color:
                   dailyAverage === null
                     ? "#667085"
@@ -155,12 +159,7 @@ export default function WeekSummaryCard({
             {dailyAverage !== null && (
               <Tag
                 color={getAchievementTagColor(dailyAverage)}
-                style={{
-                  margin: 0,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  lineHeight: "20px",
-                }}
+                style={reportTagStyle}
               >
                 {getAchievementLabel(dailyAverage)}
               </Tag>
@@ -171,16 +170,13 @@ export default function WeekSummaryCard({
         {/* =====================================================
             숙제
         ===================================================== */}
-
         <div
           style={{
             ...reportItemStyle,
-
             background:
               homeworkAverage === null
                 ? "#fafafa"
                 : getAchievementBackground(homeworkAverage),
-
             border:
               homeworkAverage === null
                 ? "1px solid #e5e7eb"
@@ -193,7 +189,6 @@ export default function WeekSummaryCard({
             <Text
               style={{
                 ...valueStyle,
-
                 color:
                   homeworkAverage === null
                     ? "#667085"
@@ -206,12 +201,7 @@ export default function WeekSummaryCard({
             {homeworkAverage !== null && (
               <Tag
                 color={getAchievementTagColor(homeworkAverage)}
-                style={{
-                  margin: 0,
-                  fontSize: 20,
-                  fontWeight: 700,
-                  lineHeight: "20px",
-                }}
+                style={reportTagStyle}
               >
                 {getAchievementLabel(homeworkAverage)}
               </Tag>
@@ -222,16 +212,13 @@ export default function WeekSummaryCard({
         {/* =====================================================
             복습 테스트
         ===================================================== */}
-
         <div
           style={{
             ...reportItemStyle,
-
             background:
               record.reviewTestScore === null
                 ? "#fafafa"
                 : getAchievementBackground(record.reviewTestScore),
-
             border:
               record.reviewTestScore === null
                 ? "1px solid #e5e7eb"
@@ -244,7 +231,6 @@ export default function WeekSummaryCard({
             <Text
               style={{
                 ...valueStyle,
-
                 color:
                   record.reviewTestScore === null
                     ? "#667085"
@@ -259,12 +245,7 @@ export default function WeekSummaryCard({
             {record.reviewTestScore !== null && (
               <Tag
                 color={getAchievementTagColor(record.reviewTestScore)}
-                style={{
-                  margin: 0,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  lineHeight: "20px",
-                }}
+                style={reportTagStyle}
               >
                 {getAchievementLabel(record.reviewTestScore)}
               </Tag>
@@ -275,7 +256,6 @@ export default function WeekSummaryCard({
         {/* =====================================================
             암기반
         ===================================================== */}
-
         <div
           style={{
             ...reportItemStyle,
@@ -288,7 +268,6 @@ export default function WeekSummaryCard({
             <Text
               style={{
                 ...valueStyle,
-                fontSize: 20,
                 color: "#475467",
               }}
             >
@@ -298,17 +277,16 @@ export default function WeekSummaryCard({
         </div>
 
         {/* =====================================================
-            비고
+            쌤 한마디
         ===================================================== */}
-
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "18% 82%",
+            gridTemplateColumns: "28% 72%",
             alignItems: "center",
-            minHeight: 38,
-            marginTop: 5,
-            padding: "6px 10px",
+            minHeight: 44,
+            marginTop: 6,
+            padding: "8px 12px",
             borderRadius: 8,
             border: "1px solid #f1e4b8",
             background: record.teacherComment ? "#fffaf0" : "#f8f9fb",
@@ -318,29 +296,30 @@ export default function WeekSummaryCard({
             style={{
               fontFamily:
                 '"Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif',
-
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: 800,
+              lineHeight: "26px",
               color: "#344054",
             }}
-          ></Text>
+          >
+            쌤 한마디
+          </Text>
 
           <Text
             ellipsis={{
-              tooltip: record.teacherComment || "쌤 한마디",
+              tooltip: record.teacherComment || "-",
             }}
             style={{
               display: "block",
-
               fontFamily:
                 '"Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif',
-
-              fontSize: 18,
-              fontWeight: 600,
-              color: "#475467",
+              fontSize: 20,
+              fontWeight: 700,
+              lineHeight: "26px",
+              color: "#344054",
             }}
           >
-            {record.teacherComment || "쌤 한마디"}
+            {record.teacherComment || "-"}
           </Text>
         </div>
       </Card>
@@ -349,7 +328,6 @@ export default function WeekSummaryCard({
 
   // =========================================================
   // 메인 대시보드
-  // 기존 디자인 유지
   // =========================================================
 
   const achievementItemStyle = {
@@ -366,9 +344,7 @@ export default function WeekSummaryCard({
         height: "100%",
         cursor: "pointer",
         background: "#ffffff",
-
         border: selected ? "2px solid #1677ff" : "1px solid #d9d9d9",
-
         boxShadow: selected
           ? "0 0 0 2px rgba(22,119,255,0.1)"
           : "0 1px 2px rgba(0,0,0,0.03)",
@@ -426,9 +402,7 @@ export default function WeekSummaryCard({
         <div
           style={{
             ...achievementItemStyle,
-
             background: getAchievementBackground(dailyAverage),
-
             border: `1px solid ${getAchievementColor(dailyAverage)}`,
           }}
         >
@@ -442,7 +416,6 @@ export default function WeekSummaryCard({
                 strong
                 style={{
                   fontSize: 13,
-
                   color: getAchievementColor(dailyAverage),
                 }}
               >
@@ -462,13 +435,12 @@ export default function WeekSummaryCard({
             </Space>
           </Row>
         </div>
+
         {/* 숙제 */}
         <div
           style={{
             ...achievementItemStyle,
-
             background: getAchievementBackground(homeworkAverage),
-
             border: `1px solid ${getAchievementColor(homeworkAverage)}`,
           }}
         >
@@ -482,7 +454,6 @@ export default function WeekSummaryCard({
                 strong
                 style={{
                   fontSize: 13,
-
                   color: getAchievementColor(homeworkAverage),
                 }}
               >
@@ -507,9 +478,7 @@ export default function WeekSummaryCard({
         <div
           style={{
             ...achievementItemStyle,
-
             background: getAchievementBackground(record.reviewTestScore),
-
             border: `1px solid ${getAchievementColor(record.reviewTestScore)}`,
           }}
         >
@@ -523,7 +492,6 @@ export default function WeekSummaryCard({
                 strong
                 style={{
                   fontSize: 13,
-
                   color: getAchievementColor(record.reviewTestScore),
                 }}
               >
@@ -573,19 +541,22 @@ export default function WeekSummaryCard({
         {/* 쌤 한마디 */}
         <div
           style={{
-            padding: "7px 8px",
+            padding: "8px 10px",
             borderRadius: 7,
-            background: "#f6f8fa",
+            background: "#f5f7fa",
+            border: "1px solid #e5e7eb",
           }}
         >
           <Text
-            type="secondary"
             ellipsis={{
               tooltip: record.teacherComment || "쌤 한마디",
             }}
             style={{
               display: "block",
-              fontSize: 11,
+              fontSize: 13,
+              fontWeight: 600,
+              lineHeight: "20px",
+              color: "#344054",
             }}
           >
             💬 {record.teacherComment || "쌤 한마디"}

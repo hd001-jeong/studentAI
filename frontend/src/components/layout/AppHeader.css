@@ -1,0 +1,468 @@
+/* ================================
+   헤더 달력 버튼
+================================ */
+
+.kyeon-calendar-button {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  color: #4f6ff0;
+  font-size: 17px;
+}
+
+.kyeon-calendar-button:hover {
+  color: #3859d8 !important;
+  background: #f1f4ff !important;
+}
+
+/* ================================
+   Modal
+================================ */
+
+.kyeon-calendar-modal .ant-modal {
+  max-width: calc(100vw - 32px);
+}
+
+.kyeon-calendar-modal .ant-modal-content {
+  padding: 0;
+
+  overflow: hidden;
+
+  border-radius: 20px;
+
+  background: #ffffff;
+
+  box-shadow: 0 24px 70px rgba(30, 41, 70, 0.18);
+}
+
+.kyeon-calendar-modal .ant-modal-close {
+  top: 14px;
+  right: 14px;
+
+  width: 32px;
+  height: 32px;
+
+  border-radius: 50%;
+}
+
+/* ================================
+   전체
+================================ */
+
+.kyeon-calendar-container {
+  padding: 20px 26px 22px;
+
+  background: linear-gradient(180deg, #f8faff 0, #ffffff 118px);
+}
+
+/* ================================
+   상단
+================================ */
+
+.kyeon-calendar-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  margin-bottom: 7px;
+}
+
+.kyeon-calendar-small-title {
+  margin-bottom: 2px;
+
+  color: #5d77e8;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 1.5px;
+}
+
+.kyeon-calendar-title {
+  color: #111827;
+
+  font-size: 24px;
+  font-weight: 800;
+
+  line-height: 1.25;
+
+  letter-spacing: -0.6px;
+}
+
+/* ================================
+   일정 추가
+================================ */
+
+.kyeon-schedule-button {
+  height: 36px;
+
+  padding: 0 15px;
+
+  border: none !important;
+  border-radius: 11px !important;
+
+  background: linear-gradient(135deg, #5575ef, #7089f5) !important;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  box-shadow: 0 6px 16px rgba(79, 111, 240, 0.2);
+}
+
+/* ================================
+   이전 / 오늘 / 다음
+================================ */
+
+.kyeon-calendar-navigation {
+  display: flex;
+  align-items: center;
+
+  gap: 2px;
+
+  margin-bottom: 9px;
+}
+
+.calendar-nav-button {
+  width: 31px;
+  height: 31px;
+
+  min-width: 31px;
+
+  padding: 0 !important;
+
+  border-radius: 50% !important;
+
+  color: #596273 !important;
+}
+
+.calendar-nav-button:hover {
+  color: #4262da !important;
+  background: #f3f5fb !important;
+}
+
+.calendar-today-button {
+  height: 30px;
+
+  padding: 0 12px !important;
+
+  border-radius: 16px !important;
+
+  color: #4c69d8 !important;
+
+  background: #f0f4ff !important;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ================================
+   요일
+================================ */
+
+.kyeon-week-header {
+  display: grid;
+
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+
+  gap: 5px;
+
+  margin-bottom: 5px;
+}
+
+.kyeon-week-day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 32px;
+
+  border-radius: 9px;
+
+  background: #f7f8fa;
+
+  color: #525866;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.kyeon-week-day.sunday {
+  color: #ff4d4f;
+
+  background: #fff7f7;
+}
+
+.kyeon-week-day.saturday {
+  color: #3478f6;
+
+  background: #f4f7ff;
+}
+
+/* ================================
+   달력 Grid
+================================ */
+
+.kyeon-calendar-grid {
+  display: grid;
+
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+
+  gap: 5px;
+}
+
+/* ================================
+   날짜 Card
+================================ */
+
+.kyeon-day-card {
+  min-width: 0;
+  min-height: 82px;
+
+  padding: 0;
+
+  overflow: hidden;
+
+  border: 1px solid #e7e9ef;
+  border-radius: 11px;
+
+  background: #ffffff;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.kyeon-day-card:hover {
+  border-color: #d2d9ea;
+
+  background: #fafbff;
+
+  box-shadow: 0 3px 10px rgba(31, 41, 70, 0.04);
+}
+
+.kyeon-day-card.selected {
+  border-color: #9db2f8;
+
+  background: #fafbff;
+}
+
+/* ================================
+   날짜 상단
+================================ */
+
+.kyeon-day-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  min-height: 27px;
+
+  padding: 5px 6px 1px;
+}
+
+.kyeon-day-number {
+  color: #59616e;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  line-height: 1;
+}
+
+/* ================================
+   일요일
+================================ */
+
+.kyeon-day-card.sunday .kyeon-day-number {
+  color: #ff4d4f;
+}
+
+/* ================================
+   토요일
+================================ */
+
+.kyeon-day-card.saturday .kyeon-day-number {
+  color: #3478f6;
+}
+
+/* ================================
+   다른 달
+================================ */
+
+.kyeon-day-card.other-month {
+  background: #fcfcfd;
+}
+
+.kyeon-day-card.other-month .kyeon-day-number {
+  color: #b8bdc7;
+}
+
+.kyeon-day-card.other-month.sunday .kyeon-day-number {
+  color: #efa5a7;
+}
+
+.kyeon-day-card.other-month.saturday .kyeon-day-number {
+  color: #a6baf0;
+}
+
+/* ================================
+   오늘
+================================ */
+
+.kyeon-day-card.today {
+  border: 2px solid #4f7df3;
+
+  background: linear-gradient(180deg, #f4f7ff 0%, #ffffff 100%);
+
+  box-shadow: 0 0 0 2px rgba(79, 125, 243, 0.05);
+}
+
+.kyeon-day-card.today .kyeon-day-number {
+  color: #2563eb;
+
+  font-weight: 800;
+}
+
+.kyeon-today-badge {
+  padding: 2px 6px;
+
+  border-radius: 9px;
+
+  background: #4f7df3;
+
+  color: #ffffff;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  line-height: 1.3;
+}
+
+/* ================================
+   일정 영역
+================================ */
+
+.kyeon-day-schedules {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+
+  padding: 2px 5px 5px;
+}
+
+/* ================================
+   일정 Pill
+================================ */
+
+.kyeon-schedule-pill {
+  width: 100%;
+
+  overflow: hidden;
+
+  padding: 3px 5px;
+
+  border-radius: 5px;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  line-height: 1.2;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 정규 수업 */
+.kyeon-schedule-pill.lesson {
+  color: #3168da;
+
+  background: #e6efff;
+}
+
+/* 보강 */
+.kyeon-schedule-pill.makeup {
+  color: #744ac7;
+
+  background: #eee8ff;
+}
+
+/* 시험 */
+.kyeon-schedule-pill.exam {
+  color: #25895b;
+
+  background: #ddf7e8;
+}
+
+/* 휴강 */
+.kyeon-schedule-pill.cancel {
+  color: #cf565e;
+
+  background: #ffe7e9;
+}
+
+/* 기타 */
+.kyeon-schedule-pill.etc {
+  color: #875f27;
+
+  background: #fff3dc;
+}
+
+/* ================================
+   +n개
+================================ */
+
+.kyeon-more-schedule {
+  padding-left: 3px;
+
+  color: #717b8d;
+
+  font-size: 9px;
+  font-weight: 600;
+
+  line-height: 1.2;
+}
+
+/* ================================
+   반응형
+================================ */
+
+@media (max-width: 900px) {
+  .kyeon-calendar-container {
+    padding: 18px 14px;
+  }
+
+  .kyeon-calendar-title {
+    font-size: 21px;
+  }
+
+  .kyeon-week-header,
+  .kyeon-calendar-grid {
+    gap: 4px;
+  }
+
+  .kyeon-day-card {
+    min-height: 74px;
+  }
+
+  .kyeon-day-number {
+    font-size: 11px;
+  }
+
+  .kyeon-schedule-pill {
+    padding: 3px 4px;
+
+    font-size: 9px;
+  }
+}
