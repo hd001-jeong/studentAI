@@ -51,8 +51,9 @@ function NumberInputWithUnit({
         readOnly={readOnly}
         min={min}
         max={max}
-        precision={0}
+        step={0.1}
         disabled={disabled}
+        controls={false}
         style={{
           width: "100%",
           borderTopRightRadius: 0,

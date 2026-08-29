@@ -15,11 +15,19 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/students" replace />,
+        element: <Navigate to="/students/by-student" replace />,
       },
       {
         path: "students",
+        element: <Navigate to="/students/by-student" replace />,
+      },
+      {
+        path: "students/by-student",
         element: <StudentDashboardPage />,
+      },
+      {
+        path: "students/by-week",
+        element: <div>주차별 관리</div>,
       },
       {
         path: "reports",

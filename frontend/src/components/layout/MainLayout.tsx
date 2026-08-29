@@ -54,7 +54,7 @@ export default function MainLayout() {
           <Menu
             mode="inline"
             selectedKeys={[selectedKey]}
-            defaultOpenKeys={["admin"]}
+            defaultOpenKeys={["students", "admin"]}
             inlineCollapsed={collapsed}
             style={{
               height: "100%",
@@ -63,9 +63,19 @@ export default function MainLayout() {
             }}
             items={[
               {
-                key: "/students",
+                key: "students",
                 icon: <UserOutlined />,
                 label: "학생 관리",
+                children: [
+                  {
+                    key: "/students/by-student",
+                    label: "학생별 관리",
+                  },
+                  {
+                    key: "/students/by-week",
+                    label: "주차별 관리",
+                  },
+                ],
               },
               {
                 key: "/reports",

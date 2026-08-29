@@ -36,6 +36,16 @@ const StudentReportPreview = forwardRef<
     .slice(0, 8);
 
   // =========================================================
+  // 최근 공지사항 1개
+  // sortedRecords는 주차 오름차순이므로
+  // 뒤에서부터 notice가 있는 record를 찾는다.
+  // =========================================================
+
+  const latestNoticeRecord = [...sortedRecords]
+    .reverse()
+    .find((record) => record.notice?.trim());
+
+  // =========================================================
   // 8주 PDF 레이아웃 테스트용
   // 테스트 끝나면 이 부분 삭제하고 위 실제 사용용 코드 활성화
   // =========================================================
@@ -243,6 +253,7 @@ const StudentReportPreview = forwardRef<
 
       {/* =====================================================
           Notice
+          최근 공지사항 1개만 표시
       ===================================================== */}
 
       <Card
@@ -299,26 +310,27 @@ const StudentReportPreview = forwardRef<
           },
         }}
       >
-        {sortedRecords
-          .filter((record) => record.notice?.trim())
-          .map((record) => (
-            <div
-              key={record.recordId}
-              style={{
-                marginBottom: 10,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 15,
-                  lineHeight: 1.7,
-                  whiteSpace: "pre-wrap",
-                }}
-              >
-                {record.notice}
-              </Text>
-            </div>
-          ))}
+        {latestNoticeRecord?.notice ? (
+          <Text
+            style={{
+              display: "block",
+              fontSize: 15,
+              lineHeight: 1.7,
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {latestNoticeRecord.notice}
+          </Text>
+        ) : (
+          <Text
+            type="secondary"
+            style={{
+              fontSize: 14,
+            }}
+          >
+            전달사항이 없습니다.
+          </Text>
+        )}
       </Card>
 
       {/* =====================================================

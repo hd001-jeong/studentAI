@@ -1,0 +1,163 @@
+/* =========================================================
+   PDF / 리포트
+========================================================= */
+
+.reportCard {
+  height: 100%;
+  border: 1px solid #d9d9d9;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.reportHeader {
+  padding: 10px 12px;
+  text-align: center;
+  background: #e6f4ff;
+  border-radius: 7px;
+  margin-bottom: 7px;
+}
+
+.reportHeaderText {
+  font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 26px;
+  color: #1456a0;
+}
+
+/* =========================================================
+   PDF / 리포트 공통 항목
+========================================================= */
+
+.reportItem {
+  display: grid;
+  grid-template-columns: 45% 55%;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.reportLabel {
+  font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 28px;
+  color: #222222;
+}
+
+.reportValueWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.reportValue {
+  font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 28px;
+}
+
+.reportTag {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  padding-inline: 7px;
+}
+
+/* =========================================================
+   암기반
+========================================================= */
+
+.memorizationItem {
+  background: #fafafa;
+  border: 1px solid #e5e7eb;
+}
+
+.memorizationValue {
+  color: #475467;
+}
+
+/* =========================================================
+   쌤 한마디
+   항상 연보라색 고정
+========================================================= */
+
+.teacherComment {
+  display: grid;
+  grid-template-columns: 28% 72%;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #f7f2ff;
+  border: 1px solid #e4d4ff;
+}
+
+.teacherCommentLabel {
+  font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 26px;
+  color: #6941c6;
+}
+
+.teacherCommentText {
+  display: block;
+  font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 26px;
+  color: #344054;
+}
+
+/* =========================================================
+   메인 대시보드
+========================================================= */
+
+.dashboardCard {
+  height: 100%;
+  cursor: pointer;
+  background: #ffffff;
+}
+
+.dashboardProgress {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.achievementItem {
+  padding: 6px 8px;
+  border-radius: 7px;
+}
+
+.dashboardMemorization {
+  padding: 6px 8px;
+  border-radius: 7px;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+}
+
+.dashboardComment {
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: #f7f2ff;
+  border: 1px solid #e4d4ff;
+}
+
+.dashboardCommentText {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+  color: #6941c6;
+}
