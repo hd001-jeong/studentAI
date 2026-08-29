@@ -27,6 +27,24 @@ def to_number_or_none(value: str) -> int | None:
         return None
 
 
+def to_float_or_none(value: str) -> float | None:
+    """
+    CSV의 숫자 문자열을 float로 변환한다.
+
+    복습 맞은 개수처럼
+    3.1, 7.9 등의 소수점 입력이 가능한 값에 사용한다.
+    """
+    cleaned_value = value.strip()
+
+    if cleaned_value == "":
+        return None
+
+    try:
+        return float(cleaned_value)
+    except ValueError:
+        return None
+
+
 def to_week_number(value: str) -> int:
     """
     '1', '1주', '1주차' 형태를 모두 숫자 1로 변환한다.
@@ -146,9 +164,12 @@ def read_students() -> list[dict[str, Any]]:
                 "reviewQuestionCount": to_number_or_none(
                     row["복습 문항 개수"]
                 ),
-                "reviewCorrectCount": to_number_or_none(
+
+                # 소수점 허용
+                "reviewCorrectCount": to_float_or_none(
                     row["복습 맞은 개수"]
                 ),
+
                 "reviewTestScore": to_number_or_none(
                     row["복습 테스트 점수(자동)"]
                 ),

@@ -1,6 +1,21 @@
 import re
 from typing import Any
 
+def to_float_or_none(value: object) -> float | None:
+    """
+    숫자 값을 float로 변환한다.
+    복습 맞은 개수처럼 소수점이 가능한 값에 사용한다.
+    """
+    cleaned_value = str(value).strip()
+
+    if cleaned_value == "":
+        return None
+
+    try:
+        return float(cleaned_value)
+    except (ValueError, TypeError):
+        return None
+
 
 def to_number_or_none(
     value: Any,

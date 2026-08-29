@@ -7,6 +7,7 @@ from google_sheet.connection import get_worksheet
 from google_sheet.utils import (
     create_achievement_item,
     get_record_id_from_row,
+    to_float_or_none,
     to_number_or_none,
     to_week_number,
 )
@@ -181,7 +182,7 @@ def create_lesson_record_from_row(
             ),
         ),
 
-        "reviewCorrectCount": to_number_or_none(
+        "reviewCorrectCount": to_float_or_none(
             row.get(
                 "복습 맞은 개수",
                 "",

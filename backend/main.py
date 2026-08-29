@@ -62,12 +62,15 @@ class LessonRecordsBatchRequest(BaseModel):
 
 class LessonRecordUpdateRequest(BaseModel):
     recordId: str
+
     number: int | None = None
     category: str = ""
+
     weekNumber: int
     weekLabel: str
     progress: str
     lessonDate: str
+
     studentId: str
     studentName: str
     schoolName: str
@@ -85,7 +88,11 @@ class LessonRecordUpdateRequest(BaseModel):
 
     reviewTest: str = ""
     reviewQuestionCount: int | None = None
-    reviewCorrectCount: int | None = None
+
+    # 복습 맞은 개수는 소수점 허용
+    # 예: 3.1, 7.9
+    reviewCorrectCount: float | None = None
+
     reviewTestScore: int | None = None
     reviewFeedback: str = ""
 
