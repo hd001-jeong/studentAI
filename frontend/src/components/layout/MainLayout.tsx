@@ -73,7 +73,7 @@ export default function MainLayout() {
                   },
                   {
                     key: "/students/by-week",
-                    label: "주차별 관리",
+                    label: "주차별 수업",
                   },
                 ],
               },
@@ -89,16 +89,16 @@ export default function MainLayout() {
                 children: [
                   {
                     key: "/notices",
-                    label: "공지사항",
+                    label: "수업 관리",
                   },
-                  {
-                    key: "/admin/single-data",
-                    label: "단일 데이터",
-                  },
-                  {
-                    key: "/admin/multi-data",
-                    label: "다중 데이터",
-                  },
+                  // {
+                  //   key: "/admin/single-data",
+                  //   label: "단일 데이터",
+                  // },
+                  // {
+                  //   key: "/admin/multi-data",
+                  //   label: "다중 데이터",
+                  // },
                 ],
               },
             ]}

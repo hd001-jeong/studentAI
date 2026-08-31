@@ -4,14 +4,50 @@ export interface NoticeResponse {
   schoolName: string;
   grade: string;
   weekLabel: string;
+
   notice: string;
+
+  lessonDate: string;
+  progress: string;
+
+  daily1: string;
+  daily2: string;
+  daily3: string;
+
+  homework1: string;
+  homework2: string;
+  homework3: string;
+
+  reviewTest: string;
+  reviewQuestionCount: number | null;
+
+  memorization1: string;
+  memorization2: string;
 }
 
 export interface NoticeUpdateRequest {
   schoolName: string;
   grade: string;
   weekLabel: string;
+
   notice: string;
+
+  lessonDate: string;
+  progress: string;
+
+  daily1: string;
+  daily2: string;
+  daily3: string;
+
+  homework1: string;
+  homework2: string;
+  homework3: string;
+
+  reviewTest: string;
+  reviewQuestionCount: number | null;
+
+  memorization1: string;
+  memorization2: string;
 }
 
 export interface NoticeHistoryItem {

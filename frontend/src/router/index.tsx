@@ -2,11 +2,10 @@ import { Navigate, createBrowserRouter } from "react-router-dom";
 
 import MainLayout from "@/components/layout/MainLayout";
 
-import MultiDataPage from "@/pages/Admin/MultiDataPage";
 import NoticePage from "@/pages/Admin/NoticePage";
-import SingleDataPage from "@/pages/Admin/SingleDataPage";
 import StudentReportPage from "@/pages/Report/StudentReportPage";
 import StudentDashboardPage from "@/pages/Student/StudentDashboardPage";
+import WeeklyStudentPage from "@/pages/Student/WeeklyStudentPage";
 
 const router = createBrowserRouter([
   {
@@ -27,7 +26,7 @@ const router = createBrowserRouter([
       },
       {
         path: "students/by-week",
-        element: <div>주차별 관리</div>,
+        element: <WeeklyStudentPage />,
       },
       {
         path: "reports",
@@ -39,11 +38,11 @@ const router = createBrowserRouter([
       },
       {
         path: "admin/single-data",
-        element: <SingleDataPage />,
+        element: <div></div>,
       },
       {
         path: "admin/multi-data",
-        element: <MultiDataPage />,
+        element: <div></div>,
       },
     ],
   },
