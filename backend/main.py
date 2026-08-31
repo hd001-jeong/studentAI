@@ -3,7 +3,9 @@ from typing import Any
 from config import FRONTEND_URL
 
 from fastapi import FastAPI, HTTPException
+
 from fastapi.middleware.cors import CORSMiddleware
+
 from pydantic import BaseModel
 
 from google_sheet.schedule import read_schedules
@@ -64,29 +66,41 @@ class LessonRecordUpdateRequest(BaseModel):
     recordId: str
 
     number: int | None = None
+
     category: str = ""
 
     weekNumber: int
+
     weekLabel: str
+
     progress: str
+
     lessonDate: str
 
     studentId: str
+
     studentName: str
+
     schoolName: str
+
     grade: str
+
     teacherName: str
 
     homeworks: list[AchievementItemRequest]
+
     dailyEvaluations: list[AchievementItemRequest]
 
     homeworkAchievement: int | None = None
+
     homeworkGrade: str = ""
 
     dailyAchievement: int | None = None
+
     dailyGrade: str = ""
 
     reviewTest: str = ""
+
     reviewQuestionCount: int | None = None
 
     # 복습 맞은 개수는 소수점 허용
@@ -94,21 +108,48 @@ class LessonRecordUpdateRequest(BaseModel):
     reviewCorrectCount: float | None = None
 
     reviewTestScore: int | None = None
+
     reviewFeedback: str = ""
 
     memorizationClass1: str = ""
+
     memorizationClass2: str = ""
+
     memorizationAchievement: str | None = None
 
     teacherComment: str = ""
+
     notice: str = ""
 
 
+# =========================================================
+# 주차별 수업 관리 수정 Request
+# =========================================================
+
 class NoticeUpdateRequest(BaseModel):
+
     schoolName: str
     grade: str
     weekLabel: str
-    notice: str
+
+    notice: str = ""
+
+    lessonDate: str = ""
+    progress: str = ""
+
+    daily1: str = ""
+    daily2: str = ""
+    daily3: str = ""
+
+    homework1: str = ""
+    homework2: str = ""
+    homework3: str = ""
+
+    reviewTest: str = ""
+    reviewQuestionCount: int | None = None
+
+    memorization1: str = ""
+    memorization2: str = ""
 
 
 # =========================================================
@@ -119,6 +160,7 @@ class NoticeUpdateRequest(BaseModel):
 def login(
     request: TeacherLoginRequest,
 ) -> dict[str, str]:
+
     teacher = login_teacher(
         request.teacherName,
         request.password,
@@ -205,6 +247,7 @@ def update_student_record(
     record_id: str,
     request: LessonRecordUpdateRequest,
 ) -> dict[str, Any]:
+
     try:
         return update_lesson_record(
             record_id,
@@ -230,6 +273,7 @@ def update_student_record(
 
 @app.get("/schedules")
 def get_schedules():
+
     try:
         return read_schedules()
 
@@ -249,6 +293,7 @@ def get_notice_weeks(
     schoolName: str,
     grade: str,
 ):
+
     try:
         return read_notice_weeks(
             schoolName,
@@ -271,6 +316,7 @@ def get_notice_history(
     schoolName: str,
     grade: str,
 ):
+
     try:
         return read_notice_history(
             schoolName,
@@ -285,7 +331,7 @@ def get_notice_history(
 
 
 # =========================================================
-# 학교 / 학년 / 주차별 공지사항 조회
+# 학교 / 학년 / 주차별 수업 정보 조회
 # =========================================================
 
 @app.get("/notices")
@@ -294,6 +340,7 @@ def get_notice(
     grade: str,
     weekLabel: str,
 ):
+
     try:
         return read_notice(
             schoolName,
@@ -309,19 +356,17 @@ def get_notice(
 
 
 # =========================================================
-# 학교 / 학년 / 주차별 공지사항 수정
+# 학교 / 학년 / 주차별 수업 정보 수정
 # =========================================================
 
 @app.put("/notices")
 def update_notice_api(
     request: NoticeUpdateRequest,
 ):
+
     try:
         return update_notice(
-            request.schoolName,
-            request.grade,
-            request.weekLabel,
-            request.notice,
+            request.model_dump(),
         )
 
     except ValueError as error:

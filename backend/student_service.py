@@ -126,6 +126,7 @@ def read_notice_weeks(
         grade,
     )
 
+
 # =========================================================
 # 학교 / 학년별 최근 공지사항 조회
 # =========================================================
@@ -141,14 +142,14 @@ def read_notice_history(
 
 
 # =========================================================
-# 학교 / 학년 / 주차별 공지사항 조회
+# 학교 / 학년 / 주차별 수업 정보 조회
 # =========================================================
 
 def read_notice(
     school_name: str,
     grade: str,
     week_label: str,
-) -> dict[str, str]:
+) -> dict[str, Any]:
     return read_notice_from_sheet(
         school_name,
         grade,
@@ -157,18 +158,12 @@ def read_notice(
 
 
 # =========================================================
-# 학교 / 학년 / 주차별 공지사항 수정
+# 학교 / 학년 / 주차별 수업 정보 수정
 # =========================================================
 
 def update_notice(
-    school_name: str,
-    grade: str,
-    week_label: str,
-    notice: str,
-) -> dict[str, str]:
+    data: dict[str, Any],
+) -> dict[str, Any]:
     return update_notice_in_sheet(
-        school_name,
-        grade,
-        week_label,
-        notice,
+        data,
     )
