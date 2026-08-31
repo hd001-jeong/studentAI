@@ -3,22 +3,21 @@ from typing import Any
 from config import FRONTEND_URL
 
 from fastapi import FastAPI, HTTPException
-
 from fastapi.middleware.cors import CORSMiddleware
-
 from pydantic import BaseModel
 
 from google_sheet.schedule import read_schedules
 
 from student_service import (
+    create_weekly_data,
     login_teacher,
-    read_students,
     read_lesson_records,
     read_lesson_records_batch,
-    update_lesson_record,
     read_notice,
     read_notice_history,
     read_notice_weeks,
+    read_students,
+    update_lesson_record,
     update_notice,
 )
 
@@ -64,43 +63,24 @@ class LessonRecordsBatchRequest(BaseModel):
 
 class LessonRecordUpdateRequest(BaseModel):
     recordId: str
-
     number: int | None = None
-
     category: str = ""
-
     weekNumber: int
-
     weekLabel: str
-
     progress: str
-
     lessonDate: str
-
     studentId: str
-
     studentName: str
-
     schoolName: str
-
     grade: str
-
     teacherName: str
-
     homeworks: list[AchievementItemRequest]
-
     dailyEvaluations: list[AchievementItemRequest]
-
     homeworkAchievement: int | None = None
-
     homeworkGrade: str = ""
-
     dailyAchievement: int | None = None
-
     dailyGrade: str = ""
-
     reviewTest: str = ""
-
     reviewQuestionCount: int | None = None
 
     # 복습 맞은 개수는 소수점 허용
@@ -108,17 +88,11 @@ class LessonRecordUpdateRequest(BaseModel):
     reviewCorrectCount: float | None = None
 
     reviewTestScore: int | None = None
-
     reviewFeedback: str = ""
-
     memorizationClass1: str = ""
-
     memorizationClass2: str = ""
-
     memorizationAchievement: str | None = None
-
     teacherComment: str = ""
-
     notice: str = ""
 
 
@@ -127,14 +101,42 @@ class LessonRecordUpdateRequest(BaseModel):
 # =========================================================
 
 class NoticeUpdateRequest(BaseModel):
-
     schoolName: str
     grade: str
     weekLabel: str
-
     notice: str = ""
-
     lessonDate: str = ""
+    progress: str = ""
+    daily1: str = ""
+    daily2: str = ""
+    daily3: str = ""
+    homework1: str = ""
+    homework2: str = ""
+    homework3: str = ""
+    reviewTest: str = ""
+    reviewQuestionCount: int | None = None
+    memorization1: str = ""
+    memorization2: str = ""
+
+
+# =========================================================
+# 주차 데이터 생성 Request
+# =========================================================
+
+class WeeklyDataStudentRequest(BaseModel):
+    studentId: str
+    studentName: str
+    schoolName: str
+    grade: str
+
+
+class WeeklyDataCreateRequest(BaseModel):
+    schoolName: str
+    grade: str
+    weekLabel: str
+    lessonDate: str
+    teacherName: str
+
     progress: str = ""
 
     daily1: str = ""
@@ -150,6 +152,10 @@ class NoticeUpdateRequest(BaseModel):
 
     memorization1: str = ""
     memorization2: str = ""
+
+    notice: str = ""
+
+    students: list[WeeklyDataStudentRequest]
 
 
 # =========================================================
@@ -183,6 +189,7 @@ def login(
 def get_students(
     teacherName: str,
 ):
+
     try:
         return read_students(
             teacherName,
@@ -204,6 +211,7 @@ def get_student_records(
     student_id: str,
     teacherName: str,
 ):
+
     try:
         return read_lesson_records(
             teacherName,
@@ -225,11 +233,39 @@ def get_student_records(
 def get_student_records_batch(
     request: LessonRecordsBatchRequest,
 ):
+
     try:
         return read_lesson_records_batch(
             request.teacherName,
             request.studentIds,
         )
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        ) from error
+
+
+# =========================================================
+# 주차 데이터 생성
+# =========================================================
+
+@app.post("/students/weekly-data")
+def create_weekly_data_api(
+    request: WeeklyDataCreateRequest,
+) -> dict[str, Any]:
+
+    try:
+        return create_weekly_data(
+            request.model_dump(),
+        )
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=400,
+            detail=str(error),
+        ) from error
 
     except Exception as error:
         raise HTTPException(

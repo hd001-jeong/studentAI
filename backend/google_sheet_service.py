@@ -21,6 +21,10 @@ from google_sheet.teacher_sheet import (
     read_teachers_from_sheet,
 )
 
+from google_sheet.weekly_data_sheet import (
+    create_weekly_data_in_sheet,
+)
+
 
 # =========================================================
 # 기존 함수 호환용

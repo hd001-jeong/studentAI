@@ -1,6 +1,7 @@
 from typing import Any
 
 from google_sheet_service import (
+    create_weekly_data_in_sheet,
     read_notice_from_sheet,
     read_notice_history_from_sheet,
     read_notice_weeks_from_sheet,
@@ -165,5 +166,17 @@ def update_notice(
     data: dict[str, Any],
 ) -> dict[str, Any]:
     return update_notice_in_sheet(
+        data,
+    )
+
+
+# =========================================================
+# 주차 데이터 생성
+# =========================================================
+
+def create_weekly_data(
+    data: dict[str, Any],
+) -> dict[str, Any]:
+    return create_weekly_data_in_sheet(
         data,
     )
