@@ -19,6 +19,54 @@ interface LessonRecordsBatchRequest {
 
 type LessonRecordsBatchResponse = Record<string, LessonRecord[]>;
 
+/**
+ * 주차 데이터 생성 대상 학생
+ */
+export interface WeeklyDataStudent {
+  studentId: string;
+  studentName: string;
+  schoolName: string;
+  grade: string;
+}
+
+/**
+ * 주차 데이터 생성 Request
+ */
+export interface WeeklyDataCreateRequest {
+  schoolName: string;
+  grade: string;
+  weekLabel: string;
+  lessonDate: string;
+  teacherName: string;
+
+  progress: string;
+
+  daily1: string;
+  daily2: string;
+  daily3: string;
+
+  homework1: string;
+  homework2: string;
+  homework3: string;
+
+  reviewTest: string;
+  reviewQuestionCount: number | null;
+
+  memorization1: string;
+  memorization2: string;
+
+  notice: string;
+
+  students: WeeklyDataStudent[];
+}
+
+/**
+ * 주차 데이터 생성 Response
+ */
+export interface WeeklyDataCreateResponse {
+  createdCount: number;
+}
+
 class StudentApi {
   async login(request: TeacherLoginRequest): Promise<TeacherLoginResponse> {
     const response = await ApiClient.post<TeacherLoginResponse>(
@@ -91,6 +139,22 @@ class StudentApi {
     const response = await ApiClient.put<LessonRecord>(
       `/students/${recordId}`,
       record,
+    );
+
+    return response.data;
+  }
+
+  /**
+   * 새 주차 데이터 생성
+   *
+   * 선택된 학생 수만큼 내신관리데이터에 행 생성
+   */
+  async createWeeklyData(
+    request: WeeklyDataCreateRequest,
+  ): Promise<WeeklyDataCreateResponse> {
+    const response = await ApiClient.post<WeeklyDataCreateResponse>(
+      "/students/weekly-data",
+      request,
     );
 
     return response.data;

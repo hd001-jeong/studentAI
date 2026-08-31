@@ -2,6 +2,7 @@ import { Navigate, createBrowserRouter } from "react-router-dom";
 
 import MainLayout from "@/components/layout/MainLayout";
 
+import MultiDataPage from "@/pages/Admin/MultiDataPage";
 import NoticePage from "@/pages/Admin/NoticePage";
 import StudentReportPage from "@/pages/Report/StudentReportPage";
 import StudentDashboardPage from "@/pages/Student/StudentDashboardPage";
@@ -37,12 +38,8 @@ const router = createBrowserRouter([
         element: <NoticePage />,
       },
       {
-        path: "admin/single-data",
-        element: <div></div>,
-      },
-      {
         path: "admin/multi-data",
-        element: <div></div>,
+        element: <MultiDataPage />,
       },
     ],
   },

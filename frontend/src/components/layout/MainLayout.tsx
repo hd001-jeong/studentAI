@@ -91,14 +91,10 @@ export default function MainLayout() {
                     key: "/notices",
                     label: "수업 관리",
                   },
-                  // {
-                  //   key: "/admin/single-data",
-                  //   label: "단일 데이터",
-                  // },
-                  // {
-                  //   key: "/admin/multi-data",
-                  //   label: "다중 데이터",
-                  // },
+                  {
+                    key: "/admin/multi-data",
+                    label: "주차 생성",
+                  },
                 ],
               },
             ]}
