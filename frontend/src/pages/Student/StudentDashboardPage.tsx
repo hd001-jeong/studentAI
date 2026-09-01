@@ -109,7 +109,8 @@ export default function StudentDashboardPage() {
   const displayedRecords = useMemo(() => {
     if (selectedStudentId && fetchedLessonRecords.length > 0) {
       return [...fetchedLessonRecords].sort(
-        (a, b) => a.weekNumber - b.weekNumber,
+        (a, b) =>
+          new Date(a.lessonDate).getTime() - new Date(b.lessonDate).getTime(),
       );
     }
 
@@ -268,7 +269,8 @@ export default function StudentDashboardPage() {
     }
 
     const sortedRecords = [...fetchedLessonRecords].sort(
-      (a, b) => a.weekNumber - b.weekNumber,
+      (a, b) =>
+        new Date(a.lessonDate).getTime() - new Date(b.lessonDate).getTime(),
     );
 
     const hasSelectedRecord = sortedRecords.some(
