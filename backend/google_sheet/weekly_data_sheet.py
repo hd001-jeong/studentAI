@@ -1,4 +1,7 @@
 from typing import Any
+import unicodedata
+
+from gspread.utils import rowcol_to_a1
 
 from google_sheet.connection import get_worksheet
 
@@ -10,22 +13,83 @@ def clean_value(value: Any) -> str:
     return str(value).strip()
 
 
+def clean_header(value: Any) -> str:
+    if value is None:
+        return ""
+
+    return (
+        unicodedata.normalize(
+            "NFKC",
+            str(value),
+        )
+        .replace("\ufeff", "")
+        .replace("\u200b", "")
+        .replace("\u200c", "")
+        .replace("\u200d", "")
+        .strip()
+    )
+
+
 def create_weekly_data_in_sheet(
     data: dict[str, Any],
 ) -> dict[str, Any]:
 
     worksheet = get_worksheet()
 
-    headers = worksheet.row_values(1)
+    raw_headers = worksheet.row_values(1)
 
-    if not headers:
+    if not raw_headers:
         raise ValueError(
             "시트 헤더를 찾을 수 없습니다.",
         )
 
+    # =====================================================
+    # 헤더 정리
+    # =====================================================
+
+    headers = [
+        clean_header(header)
+        for header in raw_headers
+    ]
+
+    # =====================================================
+    # DEBUG - 실제 연결된 시트 / 헤더 확인
+    # =====================================================
+
+    print("===== 주차 생성 DEBUG =====")
+    print(
+        "spreadsheet title:",
+        worksheet.spreadsheet.title,
+    )
+    print(
+        "spreadsheet id:",
+        worksheet.spreadsheet.id,
+    )
+    print(
+        "worksheet title:",
+        worksheet.title,
+    )
+    print(
+        "worksheet id:",
+        worksheet.id,
+    )
+    print(
+        "raw headers:",
+        [
+            repr(header)
+            for header in raw_headers
+        ],
+    )
+    print(
+        "headers:",
+        headers,
+    )
+    print("==========================")
+
     header_index = {
         header: index
         for index, header in enumerate(headers)
+        if header
     }
 
     required_headers = [
@@ -172,7 +236,7 @@ def create_weekly_data_in_sheet(
 
     # =====================================================
     # 마지막 실제 학생 데이터 행 찾기
-    # F열 학생선택 기준
+    # 학생선택 컬럼 기준
     # =====================================================
 
     student_select_column_number = (
@@ -273,14 +337,14 @@ def create_weekly_data_in_sheet(
             )
 
     # =====================================================
-    # G ~ J 자동 학생정보 수식만 복사
+    # 자동 학생정보 수식만 복사
     #
     # 학생ID(자동)
     # 학생이름(자동)
     # 소속학교명(자동)
     # 학년(자동)
     #
-    # 그 외 수식은 복사하지 않음.
+    # 그 외 수식은 복사하지 않음
     # =====================================================
 
     auto_student_headers = [
@@ -350,7 +414,7 @@ def create_weekly_data_in_sheet(
     # =====================================================
     # 프론트에서 직접 입력하는 컬럼
     #
-    # 여기에 없는 컬럼은 건드리지 않음.
+    # 여기에 없는 컬럼은 건드리지 않음
     # =====================================================
 
     writable_headers = [
@@ -467,10 +531,12 @@ def create_weekly_data_in_sheet(
                 + 1
             )
 
-            cell_address = worksheet.cell(
+            # Google Sheets API를 호출하지 않고
+            # Python 내부에서 셀 주소 계산
+            cell_address = rowcol_to_a1(
                 target_row,
                 column_number,
-            ).address
+            )
 
             updates.append(
                 {
