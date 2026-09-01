@@ -176,7 +176,11 @@ export default function StudentReportPage() {
 
           return {
             student,
-            records: recordsByStudent[studentId] ?? [],
+            records: [...(recordsByStudent[studentId] ?? [])].sort(
+              (a, b) =>
+                new Date(a.lessonDate).getTime() -
+                new Date(b.lessonDate).getTime(),
+            ),
           };
         })
         .filter((report): report is ReportPreviewItem => report !== null);

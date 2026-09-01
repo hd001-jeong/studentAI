@@ -255,7 +255,7 @@ export default function AppHeader({ teacherName }: AppHeaderProps) {
               whiteSpace: "nowrap",
             }}
           >
-            켠코어
+            켠로그
           </Text>
 
           <Text

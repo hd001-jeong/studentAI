@@ -33,6 +33,8 @@ import {
   calculateReviewScore,
 } from "@/utils/achievement";
 
+import StudentProgressChart from "./StudentProgressChart";
+
 const { Text } = Typography;
 
 const TEACHER_NAME = "박현민";
@@ -105,13 +107,18 @@ export default function StudentDashboardPage() {
    *
    * 학생 선택 후:
    * 실제 Google Sheet 데이터
+   *
+   * lessonDate 기준 오래된 → 최신 순 정렬
+   * 최근 8주만 표시
    */
   const displayedRecords = useMemo(() => {
     if (selectedStudentId && fetchedLessonRecords.length > 0) {
-      return [...fetchedLessonRecords].sort(
-        (a, b) =>
-          new Date(a.lessonDate).getTime() - new Date(b.lessonDate).getTime(),
-      );
+      return [...fetchedLessonRecords]
+        .sort(
+          (a, b) =>
+            new Date(a.lessonDate).getTime() - new Date(b.lessonDate).getTime(),
+        )
+        .slice(-8);
     }
 
     return DEFAULT_WEEK_RECORDS;
@@ -257,30 +264,26 @@ export default function StudentDashboardPage() {
    * 학생 기록 조회 완료 후
    *
    * 현재 선택된 기록이 있으면 유지하고,
-   * 선택된 기록이 없을 때만 첫 번째 기록 선택
+   * 선택된 기록이 없을 때만
+   * 현재 화면의 첫 번째 기록 선택
    */
   useEffect(() => {
     if (!selectedStudentId) {
       return;
     }
 
-    if (fetchedLessonRecords.length === 0) {
+    if (displayedRecords.length === 0) {
       return;
     }
 
-    const sortedRecords = [...fetchedLessonRecords].sort(
-      (a, b) =>
-        new Date(a.lessonDate).getTime() - new Date(b.lessonDate).getTime(),
-    );
-
-    const hasSelectedRecord = sortedRecords.some(
+    const hasSelectedRecord = displayedRecords.some(
       (record) => record.recordId === selectedRecordId,
     );
 
     if (!hasSelectedRecord) {
-      setSelectedRecordId(sortedRecords[0].recordId);
+      setSelectedRecordId(displayedRecords[0].recordId);
     }
-  }, [selectedStudentId, fetchedLessonRecords, selectedRecordId]);
+  }, [selectedStudentId, displayedRecords, selectedRecordId]);
 
   /*
    * 현재 선택된 주차
@@ -331,6 +334,7 @@ export default function StudentDashboardPage() {
   /*
    * 전체 평균
    *
+   * 화면에 표시되는 최근 8주 기준
    * 학생 선택 전에는 빈 값
    */
   const overallSummary = useMemo(() => {
@@ -338,8 +342,8 @@ export default function StudentDashboardPage() {
       return calculateOverallSummary([]);
     }
 
-    return calculateOverallSummary(fetchedLessonRecords);
-  }, [selectedStudentId, fetchedLessonRecords]);
+    return calculateOverallSummary(displayedRecords);
+  }, [selectedStudentId, displayedRecords]);
 
   /*
    * 저장
@@ -511,6 +515,8 @@ export default function StudentDashboardPage() {
                 onRecordChange={setSelectedRecordId}
                 onDetailOpen={() => setDetailOpen(true)}
               />
+
+              <StudentProgressChart records={displayedRecords} />
 
               <StudentOverallStatus summary={overallSummary} />
 

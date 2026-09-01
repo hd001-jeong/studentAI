@@ -25,19 +25,36 @@ const StudentReportPreview = forwardRef<
   HTMLDivElement,
   StudentReportPreviewProps
 >(({ studentName, schoolName, grade, teacherName, records }, ref) => {
-  const summary = calculateOverallSummary(records);
-
   // =========================================================
-  // 실제 사용용
+  // 최근 8주
+  // 오래된 주차 → 최신 주차 순으로 표시
+  //
+  // 예:
+  // 8월4주 → 8월5주 → 9월1주
+  //
+  // 8개 초과 시 가장 오래된 데이터가 빠지고
+  // 최신 8개만 유지
   // =========================================================
 
   const sortedRecords = [...records]
-    .sort((a, b) => a.weekNumber - b.weekNumber)
-    .slice(0, 8);
+    .sort(
+      (a, b) =>
+        new Date(a.lessonDate).getTime() - new Date(b.lessonDate).getTime(),
+    )
+    .slice(-8);
+
+  // =========================================================
+  // 전체 상태
+  // PDF에 표시되는 최근 8주 데이터만 기준으로 계산
+  // =========================================================
+
+  const summary = calculateOverallSummary(sortedRecords);
 
   // =========================================================
   // 최근 공지사항 1개
-  // sortedRecords는 주차 오름차순이므로
+  //
+  // sortedRecords는
+  // 오래된 주차 → 최신 주차 순이므로
   // 뒤에서부터 notice가 있는 record를 찾는다.
   // =========================================================
 
@@ -47,7 +64,7 @@ const StudentReportPreview = forwardRef<
 
   // =========================================================
   // 8주 PDF 레이아웃 테스트용
-  // 테스트 끝나면 이 부분 삭제하고 위 실제 사용용 코드 활성화
+  // 테스트 필요할 때만 사용
   // =========================================================
 
   // const baseRecord = records[0];
@@ -339,7 +356,7 @@ const StudentReportPreview = forwardRef<
       ===================================================== */}
 
       <WeekSummarySection
-        records={sortedRecords.slice(0, 8)}
+        records={sortedRecords}
         selectedRecordId=""
         onRecordChange={() => {}}
         onDetailOpen={() => {}}
