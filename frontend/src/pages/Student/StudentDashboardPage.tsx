@@ -516,7 +516,7 @@ export default function StudentDashboardPage() {
                 onDetailOpen={() => setDetailOpen(true)}
               />
 
-              <StudentProgressChart records={displayedRecords} />
+              {/* <StudentProgressChart records={displayedRecords} /> */}
 
               <StudentOverallStatus summary={overallSummary} />
 

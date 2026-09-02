@@ -6,14 +6,33 @@ import MainLayout from "@/components/layout/MainLayout";
 import MultiDataPage from "@/pages/Admin/MultiDataPage";
 import NoticePage from "@/pages/Admin/NoticePage";
 import TeacherLoginPage from "@/pages/Teacher/TeacherLoginPage";
+import NextDashboardPage from "@/pages/Home/NextDashboardPage";
 import StudentReportPage from "@/pages/Report/StudentReportPage";
 import StudentDashboardPage from "@/pages/Student/StudentDashboardPage";
 import WeeklyStudentPage from "@/pages/Student/WeeklyStudentPage";
+import NextStudentPage from "@/pages/Next/NextStudentPage";
 
 const router = createBrowserRouter([
   {
     path: "/login",
     element: <TeacherLoginPage />,
+  },
+
+  {
+    path: "/next",
+    element: (
+      <AuthGuard>
+        <NextDashboardPage />
+      </AuthGuard>
+    ),
+  },
+  {
+    path: "/next/students",
+    element: (
+      <AuthGuard>
+        <NextStudentPage />
+      </AuthGuard>
+    ),
   },
   {
     path: "/",

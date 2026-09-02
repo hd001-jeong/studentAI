@@ -8,26 +8,38 @@ interface TeacherLoginForm {
   password: string;
 }
 
-const LOGIN_TEACHER_NAME = "박현민";
-const LOGIN_PASSWORD = "1234";
+const LOGIN_USERS = [
+  {
+    teacherName: "박현민",
+    password: "1234",
+    path: "/students/by-student",
+  },
+  {
+    teacherName: "정해동",
+    password: "1234",
+    path: "/next",
+  },
+];
 
 export default function TeacherLoginPage() {
   const navigate = useNavigate();
 
   const handleFinish = (values: TeacherLoginForm) => {
-    const isValid =
-      values.teacherName === LOGIN_TEACHER_NAME &&
-      values.password === LOGIN_PASSWORD;
+    const loginUser = LOGIN_USERS.find(
+      (user) =>
+        user.teacherName === values.teacherName &&
+        user.password === values.password,
+    );
 
-    if (!isValid) {
+    if (!loginUser) {
       message.error("선생님 이름 또는 비밀번호가 올바르지 않습니다.");
       return;
     }
 
     localStorage.setItem("isLoggedIn", "true");
-    localStorage.setItem("teacherName", values.teacherName);
+    localStorage.setItem("teacherName", loginUser.teacherName);
 
-    navigate("/students/by-student", { replace: true });
+    navigate(loginUser.path, { replace: true });
   };
 
   return (
