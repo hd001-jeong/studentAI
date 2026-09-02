@@ -1,8 +1,5 @@
-import { useState } from "react";
 import { Button, Form, Input, Typography, message } from "antd";
 import { useNavigate } from "react-router-dom";
-
-import StudentApi from "@/api/StudentApi";
 
 const { Title, Text } = Typography;
 
@@ -11,27 +8,26 @@ interface TeacherLoginForm {
   password: string;
 }
 
+const LOGIN_TEACHER_NAME = "박현민";
+const LOGIN_PASSWORD = "1234";
+
 export default function TeacherLoginPage() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
 
-  const handleFinish = async (values: TeacherLoginForm) => {
-    try {
-      setLoading(true);
+  const handleFinish = (values: TeacherLoginForm) => {
+    const isValid =
+      values.teacherName === LOGIN_TEACHER_NAME &&
+      values.password === LOGIN_PASSWORD;
 
-      const teacher = await StudentApi.login(values);
-
-      localStorage.setItem("teacherCode", teacher.teacherCode);
-      localStorage.setItem("teacherName", teacher.teacherName);
-
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("로그인 실패:", error);
-
+    if (!isValid) {
       message.error("선생님 이름 또는 비밀번호가 올바르지 않습니다.");
-    } finally {
-      setLoading(false);
+      return;
     }
+
+    localStorage.setItem("isLoggedIn", "true");
+    localStorage.setItem("teacherName", values.teacherName);
+
+    navigate("/students/by-student", { replace: true });
   };
 
   return (
@@ -41,8 +37,17 @@ export default function TeacherLoginPage() {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        background: "#ffffff",
         padding: 24,
+        backgroundImage: `
+          linear-gradient(
+            rgba(255, 255, 255, 0.82),
+            rgba(255, 255, 255, 0.82)
+          ),
+          url("/images/login-bg.jpg")
+        `,
+        backgroundSize: "cover",
+        backgroundPosition: "center 65%",
+        backgroundRepeat: "no-repeat",
       }}
     >
       <div
@@ -50,6 +55,13 @@ export default function TeacherLoginPage() {
           width: "100%",
           maxWidth: 520,
           textAlign: "center",
+          padding: "36px 32px",
+          borderRadius: 20,
+          background: "rgba(255, 255, 255, 0.72)",
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+          boxShadow: "0 12px 40px rgba(0, 0, 0, 0.08)",
+          border: "1px solid rgba(255, 255, 255, 0.8)",
         }}
       >
         <Title
@@ -58,7 +70,7 @@ export default function TeacherLoginPage() {
             marginBottom: 8,
           }}
         >
-          StudentAI
+          켠로그
         </Title>
 
         <Text type="secondary">
@@ -112,7 +124,10 @@ export default function TeacherLoginPage() {
             htmlType="submit"
             size="large"
             block
-            loading={loading}
+            style={{
+              height: 44,
+              marginTop: 8,
+            }}
           >
             시작하기
           </Button>

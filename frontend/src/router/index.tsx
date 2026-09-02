@@ -1,17 +1,27 @@
 import { Navigate, createBrowserRouter } from "react-router-dom";
 
+import AuthGuard from "@/components/common/AuthGuard";
 import MainLayout from "@/components/layout/MainLayout";
 
 import MultiDataPage from "@/pages/Admin/MultiDataPage";
 import NoticePage from "@/pages/Admin/NoticePage";
+import TeacherLoginPage from "@/pages/Teacher/TeacherLoginPage";
 import StudentReportPage from "@/pages/Report/StudentReportPage";
 import StudentDashboardPage from "@/pages/Student/StudentDashboardPage";
 import WeeklyStudentPage from "@/pages/Student/WeeklyStudentPage";
 
 const router = createBrowserRouter([
   {
+    path: "/login",
+    element: <TeacherLoginPage />,
+  },
+  {
     path: "/",
-    element: <MainLayout />,
+    element: (
+      <AuthGuard>
+        <MainLayout />
+      </AuthGuard>
+    ),
     children: [
       {
         index: true,

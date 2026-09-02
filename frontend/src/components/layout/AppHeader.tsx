@@ -187,10 +187,11 @@ export default function AppHeader({ teacherName }: AppHeaderProps) {
   }, [calendarOpen]);
 
   const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("teacherCode");
     localStorage.removeItem("teacherName");
 
-    navigate("/");
+    navigate("/login", { replace: true });
   };
 
   const handlePrevMonth = () => {
