@@ -21,6 +21,8 @@ from student_service import (
     update_notice,
 )
 
+from routers.next.students import router as next_students_router
+from routers.next.lesson_records import router as next_lesson_records_router
 
 app = FastAPI()
 
@@ -40,6 +42,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# =========================================================
+# Router
+# =========================================================
+
+app.include_router(next_students_router)
+app.include_router(next_lesson_records_router)
 
 
 # =========================================================
@@ -189,7 +199,6 @@ def login(
 def get_students(
     teacherName: str,
 ):
-
     try:
         return read_students(
             teacherName,
@@ -211,7 +220,6 @@ def get_student_records(
     student_id: str,
     teacherName: str,
 ):
-
     try:
         return read_lesson_records(
             teacherName,
@@ -233,7 +241,6 @@ def get_student_records(
 def get_student_records_batch(
     request: LessonRecordsBatchRequest,
 ):
-
     try:
         return read_lesson_records_batch(
             request.teacherName,
@@ -309,7 +316,6 @@ def update_student_record(
 
 @app.get("/schedules")
 def get_schedules():
-
     try:
         return read_schedules()
 
@@ -329,7 +335,6 @@ def get_notice_weeks(
     schoolName: str,
     grade: str,
 ):
-
     try:
         return read_notice_weeks(
             schoolName,
@@ -352,7 +357,6 @@ def get_notice_history(
     schoolName: str,
     grade: str,
 ):
-
     try:
         return read_notice_history(
             schoolName,
@@ -376,7 +380,6 @@ def get_notice(
     grade: str,
     weekLabel: str,
 ):
-
     try:
         return read_notice(
             schoolName,
@@ -399,7 +402,6 @@ def get_notice(
 def update_notice_api(
     request: NoticeUpdateRequest,
 ):
-
     try:
         return update_notice(
             request.model_dump(),
