@@ -33,7 +33,7 @@ import {
   calculateReviewScore,
 } from "@/utils/achievement";
 
-import StudentProgressChart from "./StudentProgressChart";
+// import StudentProgressChart from "./StudentProgressChart";
 
 const { Text } = Typography;
 
