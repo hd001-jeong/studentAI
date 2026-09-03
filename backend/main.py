@@ -23,6 +23,8 @@ from student_service import (
 
 from routers.next.students import router as next_students_router
 from routers.next.lesson_records import router as next_lesson_records_router
+from routers.next.classes import router as next_classes_router
+from routers.next.attendance import router as next_attendance_router
 
 app = FastAPI()
 
@@ -50,7 +52,8 @@ app.add_middleware(
 
 app.include_router(next_students_router)
 app.include_router(next_lesson_records_router)
-
+app.include_router(next_classes_router)
+app.include_router(next_attendance_router)
 
 # =========================================================
 # Request Models
