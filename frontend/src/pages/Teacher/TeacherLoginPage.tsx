@@ -36,8 +36,8 @@ export default function TeacherLoginPage() {
       return;
     }
 
-    localStorage.setItem("isLoggedIn", "true");
-    localStorage.setItem("teacherName", loginUser.teacherName);
+    sessionStorage.setItem("isLoggedIn", "true");
+    sessionStorage.setItem("teacherName", loginUser.teacherName);
 
     navigate(loginUser.path, { replace: true });
   };

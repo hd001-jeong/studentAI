@@ -6,7 +6,7 @@ interface Props {
 }
 
 function AuthGuard({ children }: Props) {
-  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+  const isLoggedIn = sessionStorage.getItem("isLoggedIn") === "true";
 
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;

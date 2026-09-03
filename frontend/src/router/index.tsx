@@ -11,6 +11,7 @@ import StudentReportPage from "@/pages/Report/StudentReportPage";
 import StudentDashboardPage from "@/pages/Student/StudentDashboardPage";
 import WeeklyStudentPage from "@/pages/Student/WeeklyStudentPage";
 import NextStudentPage from "@/pages/Next/NextStudentPage";
+import NextAttendancePage from "@/pages/Next/NextAttendancePage";
 
 const router = createBrowserRouter([
   {
@@ -34,6 +35,15 @@ const router = createBrowserRouter([
       </AuthGuard>
     ),
   },
+  {
+    path: "/next/attendance",
+    element: (
+      <AuthGuard>
+        <NextAttendancePage />
+      </AuthGuard>
+    ),
+  },
+
   {
     path: "/",
     element: (

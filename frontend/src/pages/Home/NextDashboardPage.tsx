@@ -4,8 +4,8 @@ import {
   TeamOutlined,
   UserAddOutlined,
 } from "@ant-design/icons";
-import { Card, Col, Row, Space, Statistic, Typography } from "antd";
 import { useQuery } from "@tanstack/react-query";
+import { Card, Col, List, Row, Space, Statistic, Typography } from "antd";
 import { useNavigate } from "react-router-dom";
 
 import ApiClient from "@/api/ApiClient";
@@ -16,10 +16,56 @@ interface StudentCountResponse {
   count: number;
 }
 
+interface NextClass {
+  id: number;
+  created_at: string;
+  teacher_name: string;
+  class_name: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string | null;
+  is_active: boolean;
+}
+
+interface AttendanceRecord {
+  id: number;
+  class_id: number;
+  student_id: number;
+  attendance_date: string;
+  status: "present" | "late" | "absent";
+  memo: string | null;
+}
+
+function getTodayDayOfWeek() {
+  const day = new Date().getDay();
+
+  return day === 0 ? 7 : day;
+}
+
+function getTodayDate() {
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function formatTime(time: string | null) {
+  if (!time) {
+    return "";
+  }
+
+  return time.slice(0, 5);
+}
+
 export default function NextDashboardPage() {
   const navigate = useNavigate();
 
-  const teacherName = localStorage.getItem("teacherName") ?? "";
+  const teacherName = sessionStorage.getItem("teacherName") ?? "";
+  const todayDayOfWeek = getTodayDayOfWeek();
+  const todayDate = getTodayDate();
 
   const { data: studentCountData, isLoading: isStudentCountLoading } = useQuery(
     {
@@ -40,7 +86,50 @@ export default function NextDashboardPage() {
     },
   );
 
+  const { data: todayClasses = [], isLoading: isTodayClassesLoading } =
+    useQuery({
+      queryKey: ["next-today-classes", teacherName, todayDayOfWeek],
+      queryFn: async () => {
+        const response = await ApiClient.get<NextClass[]>(
+          "/next/classes/today",
+          {
+            params: {
+              teacherName,
+              dayOfWeek: todayDayOfWeek,
+            },
+          },
+        );
+
+        return response.data;
+      },
+      enabled: !!teacherName,
+    });
+
+  const { data: attendanceRecords = [], isLoading: isAttendanceLoading } =
+    useQuery({
+      queryKey: ["next-dashboard-attendance", teacherName, todayDate],
+      queryFn: async () => {
+        const response = await ApiClient.get<AttendanceRecord[]>(
+          "/next/attendance",
+          {
+            params: {
+              teacherName,
+              attendanceDate: todayDate,
+            },
+          },
+        );
+
+        return response.data;
+      },
+      enabled: !!teacherName,
+    });
+
   const studentCount = studentCountData?.count ?? 0;
+  const todayClassCount = todayClasses.length;
+
+  const absentCount = attendanceRecords.filter(
+    (item) => item.status === "absent",
+  ).length;
 
   return (
     <div style={{ padding: 24 }}>
@@ -71,7 +160,8 @@ export default function NextDashboardPage() {
           <Card>
             <Statistic
               title="오늘 수업"
-              value={0}
+              value={todayClassCount}
+              loading={isTodayClassesLoading}
               prefix={<CalendarOutlined />}
               suffix="건"
             />
@@ -81,8 +171,9 @@ export default function NextDashboardPage() {
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="결석 / 보강"
-              value={0}
+              title="오늘 결석"
+              value={absentCount}
+              loading={isAttendanceLoading}
               prefix={<UserAddOutlined />}
               suffix="건"
             />
@@ -104,7 +195,35 @@ export default function NextDashboardPage() {
       <Row gutter={[16, 16]} style={{ marginTop: 8 }}>
         <Col xs={24} lg={14}>
           <Card title="오늘 일정" style={{ minHeight: 260 }}>
-            <Text type="secondary">등록된 일정이 없습니다.</Text>
+            {todayClasses.length === 0 ? (
+              <Text type="secondary">등록된 일정이 없습니다.</Text>
+            ) : (
+              <List
+                loading={isTodayClassesLoading}
+                dataSource={todayClasses}
+                renderItem={(item) => (
+                  <List.Item>
+                    <List.Item.Meta
+                      title={
+                        <Space>
+                          <CalendarOutlined />
+
+                          <Text strong>{item.class_name}</Text>
+                        </Space>
+                      }
+                      description={
+                        <Text type="secondary">
+                          {formatTime(item.start_time)}
+                          {item.end_time
+                            ? ` ~ ${formatTime(item.end_time)}`
+                            : ""}
+                        </Text>
+                      }
+                    />
+                  </List.Item>
+                )}
+              />
+            )}
           </Card>
         </Col>
 
@@ -118,6 +237,7 @@ export default function NextDashboardPage() {
                   style={{ textAlign: "center" }}
                 >
                   <TeamOutlined style={{ fontSize: 24 }} />
+
                   <div style={{ marginTop: 8 }}>학생 관리</div>
                 </Card>
               </Col>
@@ -129,6 +249,7 @@ export default function NextDashboardPage() {
                   style={{ textAlign: "center" }}
                 >
                   <UserAddOutlined style={{ fontSize: 24 }} />
+
                   <div style={{ marginTop: 8 }}>출결 관리</div>
                 </Card>
               </Col>
@@ -140,6 +261,7 @@ export default function NextDashboardPage() {
                   style={{ textAlign: "center" }}
                 >
                   <CalendarOutlined style={{ fontSize: 24 }} />
+
                   <div style={{ marginTop: 8 }}>일정 관리</div>
                 </Card>
               </Col>
@@ -151,6 +273,7 @@ export default function NextDashboardPage() {
                   style={{ textAlign: "center" }}
                 >
                   <DollarOutlined style={{ fontSize: 24 }} />
+
                   <div style={{ marginTop: 8 }}>수납 관리</div>
                 </Card>
               </Col>

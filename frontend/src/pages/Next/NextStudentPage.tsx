@@ -54,7 +54,7 @@ export default function NextStudentPage() {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  const teacherName = localStorage.getItem("teacherName") ?? "";
+  const teacherName = sessionStorage.getItem("teacherName") ?? "";
 
   const {
     data: students = [],
