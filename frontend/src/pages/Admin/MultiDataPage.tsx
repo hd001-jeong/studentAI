@@ -13,12 +13,15 @@ import {
   Tag,
   Typography,
   message,
+  Popover,
+  Spin,
 } from "antd";
 import dayjs from "dayjs";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 import StudentApi from "@/api/StudentApi";
 import { useStudentsQuery } from "@/hooks/useStudentsQuery";
+import NoticeApi, { type NoticeHistoryItem } from "@/api/NoticeApi";
 
 const { Text, Title } = Typography;
 
@@ -55,19 +58,50 @@ export default function MultiDataPage() {
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [isCreating, setIsCreating] = useState(false);
 
+  const [recentNotices, setRecentNotices] = useState<NoticeHistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
   const { data: students = [], isLoading: isStudentsLoading } =
     useStudentsQuery(TEACHER_NAME);
 
   const schoolOptions = useMemo(() => {
-    const schools = Array.from(
-      new Set(students.map((student) => student.schoolName).filter(Boolean)),
-    );
+    const allowedSchools = ["인창고", "이화여고"];
 
-    return schools.map((school) => ({
-      value: school,
-      label: school,
+    return Array.from(
+      new Set(
+        students
+          .map((student) => student.schoolName)
+          .filter((schoolName) => allowedSchools.includes(schoolName)),
+      ),
+    ).map((schoolName) => ({
+      label: schoolName,
+      value: schoolName,
     }));
   }, [students]);
+
+  useEffect(() => {
+    if (!selectedSchool || !selectedGrade) {
+      setRecentNotices([]);
+      return;
+    }
+
+    const fetchHistory = async () => {
+      try {
+        setHistoryLoading(true);
+
+        const data = await NoticeApi.getHistory(selectedSchool, selectedGrade);
+
+        setRecentNotices(data);
+      } catch (error) {
+        console.error("최근 공지 조회 실패", error);
+        setRecentNotices([]);
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, [selectedSchool, selectedGrade]);
 
   const gradeOptions = useMemo(() => {
     if (!selectedSchool) {
@@ -515,7 +549,83 @@ export default function MultiDataPage() {
             </Col>
           </Row>
 
-          <Divider>Notice</Divider>
+          <Divider>
+            <Space size={8}>
+              <span>Notice</span>
+
+              <Popover
+                trigger="click"
+                placement="bottom"
+                content={
+                  <div
+                    style={{
+                      width: 320,
+                      maxHeight: 240,
+                      overflowY: "auto",
+                    }}
+                  >
+                    {historyLoading ? (
+                      <div
+                        style={{
+                          padding: 16,
+                          textAlign: "center",
+                        }}
+                      >
+                        <Spin size="small" />
+                      </div>
+                    ) : recentNotices.length === 0 ? (
+                      <Text type="secondary">최근 공지가 없습니다.</Text>
+                    ) : (
+                      recentNotices.map((item) => (
+                        <div
+                          key={item.weekLabel}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setNotice(item.notice)}
+                          onKeyDown={() => {}}
+                          style={{
+                            padding: "8px 10px",
+                            cursor: "pointer",
+                            borderBottom: "1px solid #f0f0f0",
+                          }}
+                        >
+                          <Text
+                            strong
+                            style={{
+                              display: "block",
+                              fontSize: 12,
+                            }}
+                          >
+                            {item.weekLabel}
+                          </Text>
+
+                          <Text
+                            style={{
+                              fontSize: 12,
+                            }}
+                          >
+                            {item.notice}
+                          </Text>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                }
+              >
+                <Button
+                  type="link"
+                  size="small"
+                  disabled={!selectedSchool || !selectedGrade}
+                  style={{
+                    padding: 0,
+                    fontSize: 12,
+                  }}
+                >
+                  최근 공지
+                </Button>
+              </Popover>
+            </Space>
+          </Divider>
 
           <Input.TextArea
             value={notice}

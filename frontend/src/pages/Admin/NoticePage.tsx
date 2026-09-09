@@ -59,11 +59,8 @@ export default function NoticePage() {
   const [memorization1, setMemorization1] = useState("");
   const [memorization2, setMemorization2] = useState("");
 
-  const [recentNotices, setRecentNotices] = useState<NoticeHistoryItem[]>([]);
-
   const [weeksLoading, setWeeksLoading] = useState(false);
   const [noticeLoading, setNoticeLoading] = useState(false);
-  const [historyLoading, setHistoryLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const [messageApi, contextHolder] = message.useMessage();
@@ -154,30 +151,6 @@ export default function NoticePage() {
   }, [selectedSchool, selectedGrade, messageApi]);
 
   // =======================================================
-  // 최근 공지 조회
-  // =======================================================
-
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        setHistoryLoading(true);
-
-        const data = await NoticeApi.getHistory(selectedSchool, selectedGrade);
-
-        setRecentNotices(data);
-      } catch (error) {
-        console.error("최근 공지사항 조회 실패", error);
-
-        setRecentNotices([]);
-      } finally {
-        setHistoryLoading(false);
-      }
-    };
-
-    fetchHistory();
-  }, [selectedSchool, selectedGrade]);
-
-  // =======================================================
   // 선택 주차 수업 정보 조회
   // =======================================================
 
@@ -252,10 +225,6 @@ export default function NoticePage() {
       const data = await NoticeApi.updateNotice(request);
 
       applyWeeklyData(data);
-
-      const history = await NoticeApi.getHistory(selectedSchool, selectedGrade);
-
-      setRecentNotices(history);
 
       messageApi.success("주차별 수업 정보를 저장했습니다.");
     } catch (error) {
@@ -579,44 +548,6 @@ export default function NoticePage() {
             </Col>
           </Row>
         </Card>
-
-        {(historyLoading || recentNotices.length > 0) && (
-          <Card
-            title="최근 공지"
-            style={{
-              marginTop: 16,
-            }}
-          >
-            {historyLoading ? (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: 16,
-                }}
-              >
-                <Spin />
-              </div>
-            ) : (
-              <Row gutter={[0, 12]}>
-                {recentNotices.map((item) => (
-                  <Col xs={24} key={item.weekLabel}>
-                    <div>
-                      <Text strong>{item.weekLabel}</Text>
-
-                      <div
-                        style={{
-                          marginTop: 4,
-                        }}
-                      >
-                        <Text>{item.notice}</Text>
-                      </div>
-                    </div>
-                  </Col>
-                ))}
-              </Row>
-            )}
-          </Card>
-        )}
       </div>
     </>
   );

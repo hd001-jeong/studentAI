@@ -124,27 +124,19 @@ export default function StudentDashboardPage() {
     return DEFAULT_WEEK_RECORDS;
   }, [selectedStudentId, fetchedLessonRecords]);
 
-  /*
-   * 학교 목록
-   *
-   * 학생 데이터의 schoolName을 기준으로 자동 생성
-   */
   const schoolOptions = useMemo(() => {
-    const schools = Array.from(
-      new Set(students.map((student) => student.schoolName).filter(Boolean)),
-    );
+    const allowedSchools = ["인창고", "이화여고"];
 
-    return [
-      {
-        value: "ALL",
-        label: "전체",
-      },
-
-      ...schools.map((school) => ({
-        value: school,
-        label: school,
-      })),
-    ];
+    return Array.from(
+      new Set(
+        students
+          .map((student) => student.schoolName)
+          .filter((schoolName) => allowedSchools.includes(schoolName)),
+      ),
+    ).map((schoolName) => ({
+      label: schoolName,
+      value: schoolName,
+    }));
   }, [students]);
 
   /*

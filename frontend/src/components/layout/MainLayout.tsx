@@ -63,39 +63,39 @@ export default function MainLayout() {
             }}
             items={[
               {
+                key: "admin",
+                icon: <SettingOutlined />,
+                label: "클래스 관리",
+                children: [
+                  {
+                    key: "/admin/multi-data",
+                    label: "클래스 생성",
+                  },
+                  {
+                    key: "/notices",
+                    label: "클래스 편집",
+                  },
+                ],
+              },
+              {
                 key: "students",
                 icon: <UserOutlined />,
                 label: "학생 관리",
                 children: [
                   {
                     key: "/students/by-student",
-                    label: "학생별 관리",
+                    label: "학생별 입력",
                   },
                   {
                     key: "/students/by-week",
-                    label: "주차별 수업",
+                    label: "학교별/주차별 조회",
                   },
                 ],
               },
               {
                 key: "/reports",
                 icon: <FileTextOutlined />,
-                label: "리포트",
-              },
-              {
-                key: "admin",
-                icon: <SettingOutlined />,
-                label: "관리자",
-                children: [
-                  {
-                    key: "/notices",
-                    label: "수업 관리",
-                  },
-                  {
-                    key: "/admin/multi-data",
-                    label: "주차 생성",
-                  },
-                ],
+                label: "PDF 리포트",
               },
             ]}
             onClick={({ key }) => {

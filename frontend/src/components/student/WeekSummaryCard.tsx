@@ -169,28 +169,55 @@ export default function WeekSummaryCard({
         >
           <Text className={styles.reportLabel}>복습테스트 점수</Text>
 
-          <div className={styles.reportValueWrap}>
-            <Text
-              className={styles.reportValue}
-              style={{
-                color:
-                  record.reviewTestScore === null
-                    ? "#667085"
-                    : getAchievementColor(record.reviewTestScore),
-              }}
-            >
-              {record.reviewTestScore === null
-                ? "-"
-                : `${record.reviewTestScore}점`}
-            </Text>
-
-            {record.reviewTestScore !== null && (
-              <Tag
-                color={getAchievementTagColor(record.reviewTestScore)}
-                className={styles.reportTag}
+          <div
+            style={{
+              marginLeft: "auto",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              minWidth: 0,
+            }}
+          >
+            <div className={styles.reportValueWrap}>
+              <Text
+                className={styles.reportValue}
+                style={{
+                  color:
+                    record.reviewTestScore === null
+                      ? "#667085"
+                      : getAchievementColor(record.reviewTestScore),
+                }}
               >
-                {getAchievementLabel(record.reviewTestScore)}
-              </Tag>
+                {record.reviewTestScore === null
+                  ? "-"
+                  : `${record.reviewTestScore}점`}
+              </Text>
+
+              {record.reviewTestScore !== null && (
+                <Tag
+                  color={getAchievementTagColor(record.reviewTestScore)}
+                  className={styles.reportTag}
+                >
+                  {getAchievementLabel(record.reviewTestScore)}
+                </Tag>
+              )}
+            </div>
+
+            {record.reviewFeedback && (
+              <Text
+                style={{
+                  marginTop: 2,
+                  fontSize: 12,
+                  lineHeight: "14px",
+                  textAlign: "right",
+                  color:
+                    record.reviewTestScore === null
+                      ? "#667085"
+                      : getAchievementColor(record.reviewTestScore),
+                }}
+              >
+                {record.reviewFeedback}
+              </Text>
             )}
           </div>
         </div>
@@ -260,7 +287,7 @@ export default function WeekSummaryCard({
       ===================================================== */}
 
       <Row justify="space-between" align="middle">
-        <Text strong style={{ fontSize: 17 }}>
+        <Text strong style={{ fontSize: 25 }}>
           {record.weekLabel}
         </Text>
 
@@ -269,7 +296,7 @@ export default function WeekSummaryCard({
             color="blue"
             style={{
               margin: 0,
-              fontSize: 11,
+              fontSize: 12,
             }}
           >
             선택
@@ -305,7 +332,7 @@ export default function WeekSummaryCard({
           }}
         >
           <Row justify="space-between" align="middle" wrap={false}>
-            <Text strong style={{ fontSize: 12 }}>
+            <Text strong style={{ fontSize: 15 }}>
               당일 평가
             </Text>
 
@@ -324,7 +351,7 @@ export default function WeekSummaryCard({
                 color={getAchievementTagColor(dailyAverage)}
                 style={{
                   margin: 0,
-                  fontSize: 12,
+                  fontSize: 13,
                   lineHeight: "18px",
                 }}
               >
@@ -346,7 +373,7 @@ export default function WeekSummaryCard({
           }}
         >
           <Row justify="space-between" align="middle" wrap={false}>
-            <Text strong style={{ fontSize: 12 }}>
+            <Text strong style={{ fontSize: 15 }}>
               숙제
             </Text>
 
@@ -365,7 +392,7 @@ export default function WeekSummaryCard({
                 color={getAchievementTagColor(homeworkAverage)}
                 style={{
                   margin: 0,
-                  fontSize: 10,
+                  fontSize: 13,
                   lineHeight: "18px",
                 }}
               >
@@ -387,10 +414,26 @@ export default function WeekSummaryCard({
           }}
         >
           <Row justify="space-between" align="middle" wrap={false}>
-            <Text strong style={{ fontSize: 12 }}>
+            {/* 왼쪽 */}
+            <Text strong style={{ fontSize: 15 }}>
               복습 테스트
             </Text>
 
+            {/* 가운데 */}
+            <Text
+              strong
+              style={{
+                fontSize: 15,
+                color: getAchievementColor(record.reviewTestScore),
+                flex: 1,
+                textAlign: "center",
+                margin: "0 8px",
+              }}
+            >
+              {record.reviewFeedback || ""}
+            </Text>
+
+            {/* 오른쪽 */}
             <Space size={4}>
               <Text
                 strong
@@ -408,7 +451,7 @@ export default function WeekSummaryCard({
                 color={getAchievementTagColor(record.reviewTestScore)}
                 style={{
                   margin: 0,
-                  fontSize: 10,
+                  fontSize: 13,
                   lineHeight: "18px",
                 }}
               >
@@ -424,13 +467,13 @@ export default function WeekSummaryCard({
 
         <div className={styles.dashboardMemorization}>
           <Row justify="space-between" align="middle" wrap={false}>
-            <Text strong style={{ fontSize: 12 }}>
+            <Text strong style={{ fontSize: 15 }}>
               암기반
             </Text>
 
             <Text
               style={{
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: 500,
               }}
             >

@@ -25,6 +25,7 @@ import StudentReportPreview from "./StudentReportPreview";
 const { Title, Text } = Typography;
 
 const TEACHER_NAME = "박현민";
+const ALLOWED_SCHOOLS = ["인창고", "이화여고"];
 
 interface ReportPreviewItem {
   student: StudentSummary;
@@ -62,7 +63,12 @@ export default function StudentReportPage() {
 
   const gradeOptions = useMemo(() => {
     const grades = Array.from(
-      new Set(students.map((student) => student.grade).filter(Boolean)),
+      new Set(
+        students
+          .filter((student) => ALLOWED_SCHOOLS.includes(student.schoolName))
+          .map((student) => student.grade)
+          .filter(Boolean),
+      ),
     );
 
     return [
@@ -70,7 +76,6 @@ export default function StudentReportPage() {
         label: "전체",
         value: "ALL",
       },
-
       ...grades.map((grade) => ({
         label: grade,
         value: grade,
@@ -86,6 +91,8 @@ export default function StudentReportPage() {
     const cleanedKeyword = keyword.trim().toLowerCase();
 
     return students.filter((student) => {
+      const matchesSchool = ALLOWED_SCHOOLS.includes(student.schoolName);
+
       const matchesGrade =
         selectedGrade === "ALL" || student.grade === selectedGrade;
 
@@ -95,7 +102,7 @@ export default function StudentReportPage() {
       const matchesKeyword =
         !cleanedKeyword || searchableText.includes(cleanedKeyword);
 
-      return matchesGrade && matchesKeyword;
+      return matchesSchool && matchesGrade && matchesKeyword;
     });
   }, [students, selectedGrade, keyword]);
 
