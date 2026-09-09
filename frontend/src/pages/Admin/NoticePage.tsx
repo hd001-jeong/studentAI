@@ -14,7 +14,6 @@ import {
 import { useEffect, useMemo, useState } from "react";
 
 import NoticeApi, {
-  type NoticeHistoryItem,
   type NoticeResponse,
   type NoticeUpdateRequest,
 } from "@/api/NoticeApi";
