@@ -1,44 +1,27 @@
-from google_sheet.connection import get_worksheet
+from google_sheet.connection import get_named_worksheet
 
 
 def read_student_options_from_sheet(
     teacher_name: str,
 ) -> list[dict[str, str]]:
     """
-    담당 선생님의 학생 목록만 반환한다.
-
-    같은 학생이 여러 주차에 존재해도
-    studentId 기준으로 한 번만 반환한다.
+    학생목록(동기화) 시트에서 학생 목록을 조회한다.
     """
-    worksheet = get_worksheet()
+
+    worksheet = get_named_worksheet(
+        "학생목록(동기화)",
+    )
 
     rows = worksheet.get_all_records(
         default_blank="",
     )
 
-    cleaned_teacher_name = str(
-        teacher_name,
-    ).strip()
-
-    students: dict[
-        str,
-        dict[str, str],
-    ] = {}
+    students: list[dict[str, str]] = []
 
     for row in rows:
-        row_teacher_name = str(
-            row.get(
-                "담당 선생님",
-                "",
-            ),
-        ).strip()
-
-        if row_teacher_name != cleaned_teacher_name:
-            continue
-
         student_id = str(
             row.get(
-                "학생ID(자동)",
+                "학생ID",
                 "",
             ),
         ).strip()
@@ -46,36 +29,36 @@ def read_student_options_from_sheet(
         if not student_id:
             continue
 
-        if student_id in students:
-            continue
+        students.append(
+            {
+                "studentId": student_id,
 
-        students[student_id] = {
-            "studentId": student_id,
+                "studentName": str(
+                    row.get(
+                        "이름",
+                        "",
+                    ),
+                ).strip(),
 
-            "studentName": str(
-                row.get(
-                    "학생이름(자동)",
-                    "",
-                ),
-            ).strip(),
+                "schoolName": str(
+                    row.get(
+                        "소속학교명",
+                        "",
+                    ),
+                ).strip(),
 
-            "schoolName": str(
-                row.get(
-                    "소속학교명(자동)",
-                    "",
-                ),
-            ).strip(),
+                "grade": str(
+                    row.get(
+                        "학년",
+                        "",
+                    ),
+                ).strip(),
 
-            "grade": str(
-                row.get(
-                    "학년(자동)",
-                    "",
-                ),
-            ).strip(),
+                # 기존 StudentSummary 구조 호환
+                "teacherName": str(
+                    teacher_name,
+                ).strip(),
+            }
+        )
 
-            "teacherName": row_teacher_name,
-        }
-
-    return list(
-        students.values(),
-    )
+    return students
