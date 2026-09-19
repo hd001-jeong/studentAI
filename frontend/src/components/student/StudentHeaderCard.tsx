@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { Avatar, Card, Col, Row, Select, Space, Tag, Typography } from "antd";
 
 import type { LessonRecord } from "@/types/lessonRecord";
@@ -18,6 +20,7 @@ interface StudentHeaderCardProps {
 
   selectedStudentId: string;
   studentOptions: SelectOption[];
+  allStudentOptions: SelectOption[];
 
   selectedRecord: LessonRecord;
 
@@ -33,11 +36,14 @@ function StudentHeaderCard({
   gradeOptions,
   selectedStudentId,
   studentOptions,
+  allStudentOptions,
   selectedRecord,
   onSchoolChange,
   onGradeChange,
   onStudentChange,
 }: StudentHeaderCardProps) {
+  const [studentSearch, setStudentSearch] = useState("");
+
   return (
     <Card
       size="small"
@@ -84,12 +90,24 @@ function StudentHeaderCard({
 
           <Select
             showSearch
-            optionFilterProp="label"
+            searchValue={studentSearch}
             value={selectedStudentId || undefined}
-            options={studentOptions}
-            onChange={onStudentChange}
-            placeholder="학생을 선택해주세요."
+            options={studentSearch.trim() ? allStudentOptions : studentOptions}
+            onSearch={setStudentSearch}
+            onChange={(studentId) => {
+              onStudentChange(studentId);
+              setStudentSearch("");
+            }}
+            onBlur={() => {
+              setStudentSearch("");
+            }}
+            placeholder="학생 이름 검색"
             listHeight={400}
+            filterOption={(input, option) =>
+              String(option?.label ?? "")
+                .toLowerCase()
+                .includes(input.trim().toLowerCase())
+            }
             style={{
               width: "100%",
               marginTop: 6,

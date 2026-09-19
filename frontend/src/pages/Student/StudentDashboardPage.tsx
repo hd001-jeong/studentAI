@@ -33,8 +33,6 @@ import {
   calculateReviewScore,
 } from "@/utils/achievement";
 
-// import StudentProgressChart from "./StudentProgressChart";
-
 const { Text } = Typography;
 
 const TEACHER_NAME = "박현민";
@@ -50,13 +48,8 @@ const centeredPageStyle = {
 export default function StudentDashboardPage() {
   const [saving, setSaving] = useState(false);
 
-  // 학교
   const [selectedSchool, setSelectedSchool] = useState("ALL");
-
-  // 학년
   const [selectedGrade, setSelectedGrade] = useState("ALL");
-
-  // 학생
   const [selectedStudentId, setSelectedStudentId] = useState("");
 
   const [selectedRecordId, setSelectedRecordId] = useState("DEFAULT_WEEK_1");
@@ -82,7 +75,7 @@ export default function StudentDashboardPage() {
   };
 
   /*
-   * 학생 Select 목록 조회
+   * 전체 학생 목록
    */
   const {
     data: students = [],
@@ -92,7 +85,17 @@ export default function StudentDashboardPage() {
   } = useStudentsQuery(TEACHER_NAME);
 
   /*
-   * 선택한 학생의 수업 기록 조회
+   * 전체 학생 이름 검색용
+   */
+  const allStudentOptions = useMemo(() => {
+    return students.map((student) => ({
+      value: student.studentId,
+      label: `${student.studentName} (${student.schoolName}/${student.grade})`,
+    }));
+  }, [students]);
+
+  /*
+   * 선택 학생 수업 기록
    */
   const {
     data: fetchedLessonRecords = [],
@@ -102,14 +105,7 @@ export default function StudentDashboardPage() {
   } = useLessonRecordsQuery(TEACHER_NAME, selectedStudentId);
 
   /*
-   * 최초 진입:
-   * DEFAULT 1~4주차
-   *
-   * 학생 선택 후:
-   * 실제 Google Sheet 데이터
-   *
-   * lessonDate 기준 오래된 → 최신 순 정렬
-   * 최근 8주만 표시
+   * 화면 표시 기록
    */
   const displayedRecords = useMemo(() => {
     if (selectedStudentId && fetchedLessonRecords.length > 0) {
@@ -124,6 +120,9 @@ export default function StudentDashboardPage() {
     return DEFAULT_WEEK_RECORDS;
   }, [selectedStudentId, fetchedLessonRecords]);
 
+  /*
+   * 학교 목록
+   */
   const schoolOptions = useMemo(() => {
     const allowedSchools = ["인창고", "이화여고"];
 
@@ -141,8 +140,6 @@ export default function StudentDashboardPage() {
 
   /*
    * 학년 목록
-   *
-   * 선택한 학교에 존재하는 학년만 표시
    */
   const gradeOptions = useMemo(() => {
     const grades = Array.from(
@@ -174,9 +171,7 @@ export default function StudentDashboardPage() {
   }, [students, selectedSchool]);
 
   /*
-   * 학생 목록
-   *
-   * 학교 + 학년 조건으로 필터링
+   * 학교 + 학년 기준 학생 목록
    */
   const studentOptions = useMemo(() => {
     return students
@@ -199,18 +194,30 @@ export default function StudentDashboardPage() {
   }, [students, selectedSchool, selectedGrade]);
 
   /*
-   * 학교 변경
+   * 학생 선택
    *
-   * 학교가 변경되면
-   * 학년 / 학생 선택 초기화
+   * 이름 검색으로 다른 학교 학생을 선택해도
+   * 해당 학생 학교 / 학년으로 자동 변경
+   */
+  const handleStudentChange = (studentId: string) => {
+    const student = students.find((item) => item.studentId === studentId);
+
+    if (student) {
+      setSelectedSchool(student.schoolName);
+      setSelectedGrade(student.grade);
+    }
+
+    setSelectedStudentId(studentId);
+    setSelectedRecordId("DEFAULT_WEEK_1");
+  };
+
+  /*
+   * 학교 변경
    */
   const handleSchoolChange = (school: string) => {
     setSelectedSchool(school);
-
     setSelectedGrade("ALL");
-
     setSelectedStudentId("");
-
     setSelectedRecordId("DEFAULT_WEEK_1");
   };
 
@@ -219,18 +226,7 @@ export default function StudentDashboardPage() {
    */
   const handleGradeChange = (grade: string) => {
     setSelectedGrade(grade);
-
     setSelectedStudentId("");
-
-    setSelectedRecordId("DEFAULT_WEEK_1");
-  };
-
-  /*
-   * 학생 변경
-   */
-  const handleStudentChange = (studentId: string) => {
-    setSelectedStudentId(studentId);
-
     setSelectedRecordId("DEFAULT_WEEK_1");
   };
 
@@ -254,10 +250,7 @@ export default function StudentDashboardPage() {
 
   /*
    * 학생 기록 조회 완료 후
-   *
-   * 현재 선택된 기록이 있으면 유지하고,
-   * 선택된 기록이 없을 때만
-   * 현재 화면의 첫 번째 기록 선택
+   * 존재하는 첫 주차 선택
    */
   useEffect(() => {
     if (!selectedStudentId) {
@@ -278,7 +271,7 @@ export default function StudentDashboardPage() {
   }, [selectedStudentId, displayedRecords, selectedRecordId]);
 
   /*
-   * 현재 선택된 주차
+   * 현재 선택 주차
    */
   const selectedRecord = useMemo(() => {
     return (
@@ -312,7 +305,7 @@ export default function StudentDashboardPage() {
   }, [form, reviewQuestionCount, reviewCorrectCount]);
 
   /*
-   * 선택 주차를 Form에 표시
+   * 선택 주차 Form 표시
    */
   useEffect(() => {
     if (!selectedRecord) {
@@ -325,9 +318,6 @@ export default function StudentDashboardPage() {
 
   /*
    * 전체 평균
-   *
-   * 화면에 표시되는 최근 8주 기준
-   * 학생 선택 전에는 빈 값
    */
   const overallSummary = useMemo(() => {
     if (!selectedStudentId) {
@@ -341,10 +331,6 @@ export default function StudentDashboardPage() {
    * 저장
    */
   const handleSave = async () => {
-    /*
-     * 학생 선택 전 기본 템플릿은
-     * 저장하지 않는다.
-     */
     if (!selectedStudentId) {
       return;
     }
@@ -367,17 +353,11 @@ export default function StudentDashboardPage() {
         ...values,
 
         recordId: selectedRecord.recordId,
-
         studentId: selectedRecord.studentId,
-
         studentName: selectedRecord.studentName,
-
         schoolName: selectedRecord.schoolName,
-
         grade: selectedRecord.grade,
-
         teacherName: selectedRecord.teacherName,
-
         weekNumber: selectedRecord.weekNumber,
 
         reviewTestScore: calculateReviewScore(
@@ -411,7 +391,7 @@ export default function StudentDashboardPage() {
   };
 
   /*
-   * 학생 목록 최초 조회 중
+   * 학생 목록 로딩
    */
   if (isStudentsLoading) {
     return (
@@ -476,6 +456,7 @@ export default function StudentDashboardPage() {
             gradeOptions={gradeOptions}
             selectedStudentId={selectedStudentId}
             studentOptions={studentOptions}
+            allStudentOptions={allStudentOptions}
             selectedRecord={selectedRecord}
             onSchoolChange={handleSchoolChange}
             onGradeChange={handleGradeChange}
@@ -507,8 +488,6 @@ export default function StudentDashboardPage() {
                 onRecordChange={setSelectedRecordId}
                 onDetailOpen={() => setDetailOpen(true)}
               />
-
-              {/* <StudentProgressChart records={displayedRecords} /> */}
 
               <StudentOverallStatus summary={overallSummary} />
 

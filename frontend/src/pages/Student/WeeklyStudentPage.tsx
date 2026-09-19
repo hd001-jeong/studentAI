@@ -419,8 +419,8 @@ export default function WeeklyStudentPage() {
                   description="해당 주차의 수업 기록이 없습니다."
                 />
               ) : (
-                <Row gutter={[12, 12]}>
-                  {weeklyStudents.map((student: StudentSummary) => {
+                <Row gutter={[16, 16]}>
+                  {weeklyStudents.map((student: StudentSummary, index) => {
                     const record = getRecord(student.studentId, week);
 
                     if (!record) {
@@ -438,6 +438,16 @@ export default function WeeklyStudentPage() {
                       record.memorizationAchievement,
                     );
 
+                    /*
+                     * 암기반 상태 표시
+                     */
+                    const isMemorizationPass =
+                      memorizationAchievement === "통과";
+
+                    const isMemorizationAbsent =
+                      memorizationAchievement.includes("병결") ||
+                      memorizationAchievement.includes("결석");
+
                     return (
                       <Col
                         key={`${week}-${student.studentId}`}
@@ -448,19 +458,99 @@ export default function WeeklyStudentPage() {
                       >
                         <Card
                           size="small"
+                          style={{
+                            height: "100%",
+                            border: "1px solid #cbdcf2",
+                            borderRadius: 12,
+                            boxShadow: "0 3px 10px rgba(22, 119, 255, 0.08)",
+                            overflow: "hidden",
+                          }}
+                          styles={{
+                            header: {
+                              minHeight: 62,
+                              padding: "0 14px",
+                              background:
+                                "linear-gradient(135deg, #f0f7ff 0%, #e6f4ff 100%)",
+                              borderBottom: "1px solid #d6e4ff",
+                            },
+                            body: {
+                              padding: "14px",
+                            },
+                          }}
                           title={
-                            <div>
-                              <Text strong>{student.studentName}</Text>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 10,
+                                width: "100%",
+                              }}
+                            >
+                              {/* 학생 아이콘 */}
+                              <div
+                                style={{
+                                  width: 34,
+                                  height: 34,
+                                  flexShrink: 0,
+                                  borderRadius: "50%",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  background: "#d6eaff",
+                                  color: "#1677ff",
+                                  fontSize: 16,
+                                  fontWeight: 700,
+                                }}
+                              >
+                                {student.studentName?.charAt(0)}
+                              </div>
 
-                              <div>
+                              {/* 학생 정보 */}
+                              <div
+                                style={{
+                                  flex: 1,
+                                  minWidth: 0,
+                                }}
+                              >
                                 <Text
-                                  type="secondary"
+                                  strong
                                   style={{
-                                    fontSize: 12,
+                                    display: "block",
+                                    fontSize: 16,
+                                    lineHeight: 1.3,
+                                    color: "#1f1f1f",
                                   }}
                                 >
-                                  {student.schoolName} {student.grade}
+                                  {student.studentName}
                                 </Text>
+
+                                <Text
+                                  style={{
+                                    display: "block",
+                                    marginTop: 2,
+                                    fontSize: 12,
+                                    color: "#55708f",
+                                  }}
+                                >
+                                  {student.schoolName}
+                                  {" · "}
+                                  {student.grade}
+                                </Text>
+                              </div>
+
+                              {/* 순번 */}
+                              <div
+                                style={{
+                                  flexShrink: 0,
+                                  padding: "2px 7px",
+                                  borderRadius: 10,
+                                  background: "#d6eaff",
+                                  color: "#1677ff",
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                }}
+                              >
+                                #{index + 1}
                               </div>
                             </div>
                           }
@@ -469,7 +559,7 @@ export default function WeeklyStudentPage() {
                             style={{
                               display: "flex",
                               flexDirection: "column",
-                              gap: 14,
+                              gap: 15,
                             }}
                           >
                             {/* 당일 평가 */}
@@ -477,13 +567,29 @@ export default function WeeklyStudentPage() {
                               <div
                                 style={{
                                   display: "flex",
+                                  alignItems: "center",
                                   justifyContent: "space-between",
-                                  marginBottom: 4,
+                                  marginBottom: 6,
                                 }}
                               >
-                                <Text>당일 평가</Text>
+                                <Text
+                                  strong
+                                  style={{
+                                    fontSize: 14,
+                                  }}
+                                >
+                                  당일 평가
+                                </Text>
 
-                                <Tag color={getScoreTagColor(dailyAchievement)}>
+                                <Tag
+                                  color={getScoreTagColor(dailyAchievement)}
+                                  style={{
+                                    margin: 0,
+                                    minWidth: 48,
+                                    textAlign: "center",
+                                    fontWeight: 600,
+                                  }}
+                                >
                                   {dailyAchievement === null
                                     ? "-"
                                     : `${dailyAchievement}%`}
@@ -502,14 +608,28 @@ export default function WeeklyStudentPage() {
                               <div
                                 style={{
                                   display: "flex",
+                                  alignItems: "center",
                                   justifyContent: "space-between",
-                                  marginBottom: 4,
+                                  marginBottom: 6,
                                 }}
                               >
-                                <Text>숙제</Text>
+                                <Text
+                                  strong
+                                  style={{
+                                    fontSize: 14,
+                                  }}
+                                >
+                                  숙제
+                                </Text>
 
                                 <Tag
                                   color={getScoreTagColor(homeworkAchievement)}
+                                  style={{
+                                    margin: 0,
+                                    minWidth: 48,
+                                    textAlign: "center",
+                                    fontWeight: 600,
+                                  }}
                                 >
                                   {homeworkAchievement === null
                                     ? "-"
@@ -524,16 +644,30 @@ export default function WeeklyStudentPage() {
                               />
                             </div>
 
+                            {/* 구분선 */}
+                            <div
+                              style={{
+                                height: 1,
+                                background: "#eef1f5",
+                              }}
+                            />
+
                             {/* 복습 테스트 */}
                             <div
                               style={{
                                 display: "flex",
+                                alignItems: "center",
                                 justifyContent: "space-between",
                               }}
                             >
                               <Text>복습 테스트</Text>
 
-                              <Text strong>
+                              <Text
+                                strong
+                                style={{
+                                  fontSize: 15,
+                                }}
+                              >
                                 {reviewTestScore === null
                                   ? "-"
                                   : `${reviewTestScore}점`}
@@ -544,12 +678,39 @@ export default function WeeklyStudentPage() {
                             <div
                               style={{
                                 display: "flex",
+                                alignItems: "center",
                                 justifyContent: "space-between",
                               }}
                             >
                               <Text>암기반</Text>
 
-                              <Text strong>{memorizationAchievement}</Text>
+                              {isMemorizationPass ? (
+                                <Tag
+                                  color="green"
+                                  style={{
+                                    margin: 0,
+                                    minWidth: 58,
+                                    textAlign: "center",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  통과
+                                </Tag>
+                              ) : isMemorizationAbsent ? (
+                                <Tag
+                                  color="red"
+                                  style={{
+                                    margin: 0,
+                                    minWidth: 58,
+                                    textAlign: "center",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  {memorizationAchievement}
+                                </Tag>
+                              ) : (
+                                <Text strong>{memorizationAchievement}</Text>
+                              )}
                             </div>
                           </div>
                         </Card>

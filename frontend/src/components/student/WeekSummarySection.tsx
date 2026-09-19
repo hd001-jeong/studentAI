@@ -46,12 +46,13 @@ function WeekSummarySection({
       }}
     >
       <Row gutter={[10, 10]}>
-        {records.map((record) => (
+        {records.map((record, index) => (
           <Col key={record.recordId} xs={24} sm={12} lg={lgSpan}>
             <WeekSummaryCard
               record={record}
               selected={!readOnly && record.recordId === selectedRecordId}
               reportMode={reportMode}
+              reportWeekNumber={reportMode ? index + 1 : undefined}
               onClick={() => {
                 if (readOnly) {
                   return;

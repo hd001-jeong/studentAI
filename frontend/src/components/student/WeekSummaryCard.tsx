@@ -19,6 +19,7 @@ interface WeekSummaryCardProps {
   selected: boolean;
   onClick: () => void;
   reportMode?: boolean;
+  reportWeekNumber?: number;
 }
 
 export default function WeekSummaryCard({
@@ -26,6 +27,7 @@ export default function WeekSummaryCard({
   selected,
   onClick,
   reportMode = false,
+  reportWeekNumber,
 }: WeekSummaryCardProps) {
   const homeworkAverage = calculateAverage(
     record.homeworks.map((homework) => homework.achievement),
@@ -56,8 +58,9 @@ export default function WeekSummaryCard({
 
         <div className={styles.reportHeader}>
           <Text className={styles.reportHeaderText}>
-            {record.weekLabel || `${record.weekNumber}주차`} (
-            {record.weekNumber}주차) / {record.progress || "진도"}
+            {record.weekLabel || `${reportWeekNumber ?? record.weekNumber}주차`}{" "}
+            ({reportWeekNumber ?? record.weekNumber}주차) /{" "}
+            {record.progress || "진도"}
           </Text>
         </div>
 
