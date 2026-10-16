@@ -367,24 +367,24 @@ export default function MultiDataPage() {
                 }}
                 options={[
                   {
-                    value: "9월 1주",
-                    label: "9월 1주",
+                    value: "10월 1주",
+                    label: "10월 1주",
                   },
                   {
-                    value: "9월 2주",
-                    label: "9월 2주",
+                    value: "10월 2주",
+                    label: "10월 2주",
                   },
                   {
-                    value: "9월 3주",
-                    label: "9월 3주",
+                    value: "10월 3주",
+                    label: "10월 3주",
                   },
                   {
-                    value: "9월 4주",
-                    label: "9월 4주",
+                    value: "10월 4주",
+                    label: "10월 4주",
                   },
                   {
-                    value: "9월 5주",
-                    label: "9월 5주",
+                    value: "10월 5주",
+                    label: "10월 5주",
                   },
                 ]}
                 onChange={setSelectedWeek}
