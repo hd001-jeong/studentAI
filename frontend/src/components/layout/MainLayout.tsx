@@ -1,5 +1,6 @@
 import {
   FileTextOutlined,
+  MobileOutlined,
   SettingOutlined,
   UserOutlined,
 } from "@ant-design/icons";
@@ -96,6 +97,11 @@ export default function MainLayout() {
                 key: "/reports",
                 icon: <FileTextOutlined />,
                 label: "PDF 리포트",
+              },
+              {
+                key: "/mobile-reports",
+                icon: <MobileOutlined />,
+                label: "모바일 리포트",
               },
             ]}
             onClick={({ key }) => {

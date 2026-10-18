@@ -12,6 +12,7 @@ import StudentDashboardPage from "@/pages/Student/StudentDashboardPage";
 import WeeklyStudentPage from "@/pages/Student/WeeklyStudentPage";
 import NextStudentPage from "@/pages/Next/NextStudentPage";
 import NextAttendancePage from "@/pages/Next/NextAttendancePage";
+import MobileReportPage from "@/pages/MobileReport/MobileReportPage";
 
 const router = createBrowserRouter([
   {
@@ -71,6 +72,10 @@ const router = createBrowserRouter([
       {
         path: "reports",
         element: <StudentReportPage />,
+      },
+      {
+        path: "mobile-reports", // ← 추가
+        element: <MobileReportPage />,
       },
       {
         path: "notices",
