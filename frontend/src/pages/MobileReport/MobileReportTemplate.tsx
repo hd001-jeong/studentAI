@@ -61,7 +61,8 @@ const COLORS = {
   number: "#1B1F29",
   sub: "#5B6270",
   lastWeekRange: "rgba(27, 31, 41, 0.38)",
-  comment: "#4B2E7A",
+  // 쌤 한마디 글씨: 문서값(#4B2E7A)보다 한 단계 진하게
+  comment: "#36195F",
   commentBorder: "#DCCCF3",
 } as const;
 
@@ -83,6 +84,12 @@ const BAR_COLORS: Record<AchievementTagColor, string> = {
 };
 
 // 표 열: 주차·진도 80 / 당일 62 / 숙제 62 / 복습 62 / 암기반 54 / 코멘트 나머지
+// 학습 현황 표: 항상 8줄, 한 줄 높이 고정
+// 66px = 칸 여백 + 코멘트 3줄 (12px × 줄간격 1.4)
+const REPORT_ROW_COUNT = 8;
+const REPORT_ROW_HEIGHT = 66;
+const COMMENT_MAX_LINES = 3;
+
 // 숙제·복습테스트 칸 위쪽에 표시하는 고정 문구
 const LAST_WEEK_RANGE_LABEL = "지난주 범위";
 
@@ -755,23 +762,15 @@ const MobileReportTemplate = forwardRef<
             <span />
           </div>
 
-          {displayRecords.length === 0 && (
-            <div
-              style={{
-                padding: "16px 0",
-                textAlign: "center",
-                fontSize: 12,
-                color: COLORS.sub,
-              }}
-            >
-              수업 기록이 없습니다.
-            </div>
-          )}
-
+          {/* =====================================================
+              학습 현황: 항상 8줄, 한 줄 높이 고정
+              - 기록이 8주보다 적으면 남은 줄은 빈 줄로 채움
+              - 코멘트는 3줄까지 표시
+          ===================================================== */}
           <div
             style={{
-              display: "flex",
-              flexDirection: "column",
+              display: "grid",
+              gridTemplateRows: `repeat(${REPORT_ROW_COUNT}, ${REPORT_ROW_HEIGHT}px)`,
               gap: 4,
             }}
           >
@@ -797,7 +796,7 @@ const MobileReportTemplate = forwardRef<
                   key={record.recordId}
                   style={{
                     ...TABLE_GRID,
-                    padding: "4px 6px",
+                    padding: "3px 6px",
                     borderRadius: 8,
                     background: isLatest ? COLORS.latestRow : "transparent",
                   }}
@@ -890,30 +889,52 @@ const MobileReportTemplate = forwardRef<
                     multiline
                   />
 
-                  {/* 쌤 코멘트: 없어도 빈 칸 유지, 잘림 없이 전체 표시 */}
+                  {/* 쌤 코멘트: 없어도 빈 칸 유지, 칸 크기 고정 (3줄까지) */}
                   <div
                     style={{
-                      minHeight: 52,
-                      padding: "6px 8px",
+                      padding: "4px 7px",
                       borderRadius: 7,
                       border: `1px solid ${COLORS.commentBorder}`,
                       background: "#FFFFFF",
                       boxSizing: "border-box",
                       display: "flex",
                       alignItems: "center",
-                      fontSize: 12,
-                      lineHeight: 1.45,
-                      color: COLORS.comment,
-                      whiteSpace: "pre-wrap",
+                      overflow: "hidden",
                     }}
                   >
-                    {hasText(record.teacherComment)
-                      ? record.teacherComment.trim()
-                      : ""}
+                    <span
+                      style={{
+                        display: "block",
+                        maxHeight: 12 * 1.4 * COMMENT_MAX_LINES,
+                        overflow: "hidden",
+                        fontSize: 12,
+                        lineHeight: 1.4,
+                        color: COLORS.comment,
+                        // 가는 글씨라 흐려 보이지 않도록 코멘트만 한 단계 굵게
+                        fontWeight: 500,
+                        whiteSpace: "pre-wrap",
+                        // 좁은 칸이라 한글은 글자 단위로 줄바꿈해 줄 수를 줄임
+                        wordBreak: "normal",
+                      }}
+                    >
+                      {hasText(record.teacherComment)
+                        ? record.teacherComment.trim()
+                        : ""}
+                    </span>
                   </div>
                 </div>
               );
             })}
+
+            {/* 기록이 8주보다 적을 때 남은 줄은 칸 없이 흰 여백 (자리만 차지) */}
+            {Array.from(
+              {
+                length: Math.max(REPORT_ROW_COUNT - displayRecords.length, 0),
+              },
+              (_, index) => (
+                <div key={`empty-row-${index}`} />
+              ),
+            )}
           </div>
 
           {/* 범례 + 꼬리말 (카드 맨 아래로 밀착) */}
