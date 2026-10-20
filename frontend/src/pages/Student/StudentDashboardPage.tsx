@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Card, Form, Spin, Typography, message } from "antd";
+import { Card, Form, Segmented, Spin, Typography, message } from "antd";
 
 import StudentApi from "@/api/StudentApi";
 
@@ -14,6 +14,14 @@ import {
   TeacherCommentSection,
   WeekSummarySection,
 } from "@/components/student";
+
+import {
+  CURRENT_EXAM_PERIOD,
+  EXAM_PERIODS,
+  buildPeriodWeeks,
+  isInPeriod,
+  type ExamPeriodKey,
+} from "@/constants/examPeriods";
 
 import {
   DEFAULT_WEEK_RECORDS,
@@ -45,6 +53,12 @@ const centeredPageStyle = {
   background: "#f5f7fa",
 };
 
+const sortByLessonDate = (records: LessonRecord[]) =>
+  [...records].sort(
+    (a, b) =>
+      new Date(a.lessonDate).getTime() - new Date(b.lessonDate).getTime(),
+  );
+
 export default function StudentDashboardPage() {
   const [saving, setSaving] = useState(false);
 
@@ -53,6 +67,9 @@ export default function StudentDashboardPage() {
   const [selectedStudentId, setSelectedStudentId] = useState("");
 
   const [selectedRecordId, setSelectedRecordId] = useState("DEFAULT_WEEK_1");
+
+  const [selectedPeriod, setSelectedPeriod] =
+    useState<ExamPeriodKey>(CURRENT_EXAM_PERIOD);
 
   const [form] = Form.useForm<LessonRecord>();
 
@@ -105,20 +122,40 @@ export default function StudentDashboardPage() {
   } = useLessonRecordsQuery(TEACHER_NAME, selectedStudentId);
 
   /*
-   * 화면 표시 기록
+   * 화면 표시 기록 (선택한 시험 기간 기준)
    */
   const displayedRecords = useMemo(() => {
-    if (selectedStudentId && fetchedLessonRecords.length > 0) {
-      return [...fetchedLessonRecords]
-        .sort(
-          (a, b) =>
-            new Date(a.lessonDate).getTime() - new Date(b.lessonDate).getTime(),
-        )
-        .slice(-8);
+    if (!selectedStudentId) {
+      return DEFAULT_WEEK_RECORDS;
     }
 
-    return DEFAULT_WEEK_RECORDS;
-  }, [selectedStudentId, fetchedLessonRecords]);
+    const period = EXAM_PERIODS.find((p) => p.key === selectedPeriod);
+
+    if (!period) {
+      return DEFAULT_WEEK_RECORDS;
+    }
+
+    const periodRecords = fetchedLessonRecords.filter((record) =>
+      isInPeriod(record.lessonDate, period),
+    );
+
+    // 중간고사: 실제 기록만 표시 (없으면 기본 카드로 대체 → 크래시 방지)
+    if (period.key === "MIDTERM") {
+      if (periodRecords.length === 0) {
+        return DEFAULT_WEEK_RECORDS;
+      }
+
+      return sortByLessonDate(periodRecords).slice(-8);
+    }
+
+    // 기말고사: 학교별 시작 주차부터 빈 칸 포함 8주
+    // (이화여고 10월 3주 / 인창고 10월 4주)
+    const schoolName =
+      students.find((student) => student.studentId === selectedStudentId)
+        ?.schoolName ?? fetchedLessonRecords[0]?.schoolName;
+
+    return buildPeriodWeeks(period, periodRecords, schoolName);
+  }, [students, selectedStudentId, fetchedLessonRecords, selectedPeriod]);
 
   /*
    * 학교 목록
@@ -194,6 +231,14 @@ export default function StudentDashboardPage() {
   }, [students, selectedSchool, selectedGrade]);
 
   /*
+   * 시험 기간 변경
+   */
+  const handlePeriodChange = (period: ExamPeriodKey) => {
+    setSelectedPeriod(period);
+    setSelectedRecordId("DEFAULT_WEEK_1"); // 아래 useEffect가 최근 주차로 맞춰줌
+  };
+
+  /*
    * 학생 선택
    *
    * 이름 검색으로 다른 학교 학생을 선택해도
@@ -230,34 +275,12 @@ export default function StudentDashboardPage() {
     setSelectedRecordId("DEFAULT_WEEK_1");
   };
 
-  const handleDetailClose = () => {
-    if (selectedRecord) {
-      form.setFieldsValue({
-        ...selectedRecord,
-
-        homeworks: selectedRecord.homeworks.map((homework) => ({
-          ...homework,
-        })),
-
-        dailyEvaluations: selectedRecord.dailyEvaluations.map((evaluation) => ({
-          ...evaluation,
-        })),
-      });
-    }
-
-    setDetailOpen(false);
-  };
-
   /*
-   * 학생 기록 조회 완료 후
-   * 존재하는 첫 주차 선택
+   * 학생 기록 조회 / 기간 변경 후
+   * 실제 기록이 있는 가장 최근 주차 선택 (없으면 첫 칸)
    */
   useEffect(() => {
-    if (!selectedStudentId) {
-      return;
-    }
-
-    if (displayedRecords.length === 0) {
+    if (!selectedStudentId || displayedRecords.length === 0) {
       return;
     }
 
@@ -266,7 +289,11 @@ export default function StudentDashboardPage() {
     );
 
     if (!hasSelectedRecord) {
-      setSelectedRecordId(displayedRecords[0].recordId);
+      const latestReal = [...displayedRecords]
+        .reverse()
+        .find((record) => !record.recordId.startsWith("DEFAULT_"));
+
+      setSelectedRecordId((latestReal ?? displayedRecords[0]).recordId);
     }
   }, [selectedStudentId, displayedRecords, selectedRecordId]);
 
@@ -279,6 +306,14 @@ export default function StudentDashboardPage() {
       displayedRecords[0]
     );
   }, [displayedRecords, selectedRecordId]);
+
+  const handleDetailClose = () => {
+    if (selectedRecord) {
+      setRecordToForm(selectedRecord);
+    }
+
+    setDetailOpen(false);
+  };
 
   /*
    * Form 감시
@@ -314,32 +349,36 @@ export default function StudentDashboardPage() {
     }
 
     setRecordToForm(selectedRecord);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRecord]);
 
   /*
-   * 전체 평균
+   * 전체 평균 (선택한 시험 기간 기준)
    */
   const overallSummary = useMemo(() => {
     if (!selectedStudentId) {
       return calculateOverallSummary([]);
     }
 
-    return calculateOverallSummary(displayedRecords);
+    const realRecords = displayedRecords.filter(
+      (record) => !record.recordId.startsWith("DEFAULT_"),
+    );
+
+    return calculateOverallSummary(realRecords);
   }, [selectedStudentId, displayedRecords]);
 
   /*
    * 저장
    */
   const handleSave = async () => {
-    if (!selectedStudentId) {
-      return;
-    }
-
-    if (!selectedRecord) {
+    if (!selectedStudentId || !selectedRecord) {
       return;
     }
 
     if (selectedRecord.recordId.startsWith("DEFAULT_")) {
+      messageApi.warning(
+        "아직 시트에 없는 주차입니다. 구글 시트에 해당 주차 행을 먼저 추가해 주세요.",
+      );
       return;
     }
 
@@ -481,57 +520,80 @@ export default function StudentDashboardPage() {
               </Text>
             </Card>
           ) : (
-            <>
-              <WeekSummarySection
-                records={displayedRecords}
-                selectedRecordId={selectedRecord.recordId}
-                onRecordChange={setSelectedRecordId}
-                onDetailOpen={() => setDetailOpen(true)}
-              />
-
-              <StudentOverallStatus summary={overallSummary} />
-
-              <LessonDetailSection
-                weekLabel={selectedRecord.weekLabel}
-                open={detailOpen}
-                saving={saving}
-                onClose={handleDetailClose}
-                onSave={handleSave}
-              >
-                <LessonBasicInfo />
-
-                <FixedAchievementSection
-                  form={form}
-                  fieldName="dailyEvaluations"
-                  title="당일 평가"
-                  itemTitle="당일 평가"
-                  inputLabel="평가 내용"
-                />
-
+            selectedRecord && (
+              <>
                 <div
                   style={{
-                    marginTop: 10,
+                    marginTop: 12,
+                    display: "flex",
+                    justifyContent: "flex-end",
                   }}
                 >
-                  <FixedAchievementSection
-                    form={form}
-                    fieldName="homeworks"
-                    title="숙제"
-                    itemTitle="숙제"
-                    inputLabel="숙제 내용"
+                  <Segmented
+                    value={selectedPeriod}
+                    onChange={(value) =>
+                      handlePeriodChange(value as ExamPeriodKey)
+                    }
+                    options={EXAM_PERIODS.map((p) => ({
+                      label: p.label,
+                      value: p.key,
+                    }))}
                   />
                 </div>
 
-                <ReviewTestSection
-                  reviewScore={reviewScore}
-                  reviewQuestionCount={reviewQuestionCount}
+                <WeekSummarySection
+                  records={displayedRecords}
+                  selectedRecordId={selectedRecord.recordId}
+                  onRecordChange={setSelectedRecordId}
+                  onDetailOpen={() => setDetailOpen(true)}
                 />
 
-                <MemorizationSection achievement={memorizationAchievement} />
+                <StudentOverallStatus summary={overallSummary} />
 
-                <TeacherCommentSection maxLength={TEACHER_COMMENT_MAX_LENGTH} />
-              </LessonDetailSection>
-            </>
+                <LessonDetailSection
+                  weekLabel={selectedRecord.weekLabel}
+                  open={detailOpen}
+                  saving={saving}
+                  onClose={handleDetailClose}
+                  onSave={handleSave}
+                >
+                  <LessonBasicInfo />
+
+                  <FixedAchievementSection
+                    form={form}
+                    fieldName="dailyEvaluations"
+                    title="당일 평가"
+                    itemTitle="당일 평가"
+                    inputLabel="평가 내용"
+                  />
+
+                  <div
+                    style={{
+                      marginTop: 10,
+                    }}
+                  >
+                    <FixedAchievementSection
+                      form={form}
+                      fieldName="homeworks"
+                      title="숙제"
+                      itemTitle="숙제"
+                      inputLabel="숙제 내용"
+                    />
+                  </div>
+
+                  <ReviewTestSection
+                    reviewScore={reviewScore}
+                    reviewQuestionCount={reviewQuestionCount}
+                  />
+
+                  <MemorizationSection achievement={memorizationAchievement} />
+
+                  <TeacherCommentSection
+                    maxLength={TEACHER_COMMENT_MAX_LENGTH}
+                  />
+                </LessonDetailSection>
+              </>
+            )
           )}
 
           {isRecordsError && (

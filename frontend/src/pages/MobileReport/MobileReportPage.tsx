@@ -13,10 +13,18 @@ import {
   Row,
   Segmented,
   Typography,
+  message,
 } from "antd";
 
 import StudentApi from "@/api/StudentApi";
 import { useStudentsQuery } from "@/hooks/useStudentsQuery";
+
+import {
+  CURRENT_EXAM_PERIOD,
+  EXAM_PERIODS,
+  isInPeriod,
+  type ExamPeriodKey,
+} from "@/constants/examPeriods";
 
 import type { LessonRecord, StudentSummary } from "@/types/lessonRecord";
 
@@ -41,13 +49,20 @@ export default function MobileReportPage() {
 
   const [selectedGrade, setSelectedGrade] = useState("ALL");
 
+  // 리포트에 담을 시험 기간 (중간고사 / 기말고사)
+  const [selectedPeriod, setSelectedPeriod] =
+    useState<ExamPeriodKey>(CURRENT_EXAM_PERIOD);
+
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
 
+  // 조회한 전체 기록 (기간 필터 전)
   const [reportPreviews, setReportPreviews] = useState<ReportPreviewItem[]>([]);
 
   const [previewIndex, setPreviewIndex] = useState(0);
 
   const [imageSaving, setImageSaving] = useState(false);
+
+  const [messageApi, contextHolder] = message.useMessage();
 
   // 현재 미리보기 리포트 높이 (최대 1,080px 초과 여부 확인용)
   const [previewHeight, setPreviewHeight] = useState(0);
@@ -63,6 +78,26 @@ export default function MobileReportPage() {
     isLoading,
     isError,
   } = useStudentsQuery(TEACHER_NAME);
+
+  const currentPeriod =
+    EXAM_PERIODS.find((period) => period.key === selectedPeriod) ??
+    EXAM_PERIODS[0];
+
+  // =========================================================
+  // 선택한 시험 기간의 기록만 남긴 리포트 데이터
+  // (모달 · 숨김 캡처 영역 모두 이것을 사용)
+  // =========================================================
+
+  const periodReports = useMemo(() => {
+    return reportPreviews.map((report) => ({
+      ...report,
+      records: report.records.filter((record) =>
+        isInPeriod(record.lessonDate, currentPeriod),
+      ),
+    }));
+  }, [reportPreviews, currentPeriod]);
+
+  const currentReport = periodReports[previewIndex];
 
   // =========================================================
   // 학년 옵션
@@ -167,6 +202,7 @@ export default function MobileReportPage() {
 
   // =========================================================
   // 리포트 미리보기 데이터 조회
+  // 전체 기록을 받아두고, 기간 필터는 periodReports에서 적용
   // =========================================================
 
   const handleCreatePreview = async () => {
@@ -228,7 +264,7 @@ export default function MobileReportPage() {
     }
 
     setPreviewHeight(reportPreviewRef.current.offsetHeight);
-  }, [reportPreviews, previewIndex]);
+  }, [periodReports, previewIndex]);
 
   // =========================================================
   // 리포트 영역 → PNG Blob
@@ -287,6 +323,9 @@ export default function MobileReportPage() {
     }, 1000);
   };
 
+  const getFileName = (studentName: string) =>
+    `${studentName}_${currentPeriod.label}_학습리포트.png`;
+
   // =========================================================
   // 숨김 영역에서 학생 리포트 요소 찾기
   //
@@ -305,9 +344,17 @@ export default function MobileReportPage() {
   // =========================================================
 
   const handleDownloadImage = async () => {
-    const currentStudent = reportPreviews[previewIndex]?.student;
+    const currentStudent = currentReport?.student;
 
     if (!currentStudent) {
+      return;
+    }
+
+    // 해당 기간 기록이 없으면 빈 리포트를 저장하지 않음
+    if (currentReport.records.length === 0) {
+      messageApi.warning(
+        `${currentStudent.studentName} 학생은 ${currentPeriod.label} 기록이 없어 저장하지 않았습니다.`,
+      );
       return;
     }
 
@@ -322,9 +369,14 @@ export default function MobileReportPage() {
 
       const blob = await captureReportToPng(reportElement);
 
-      downloadBlob(blob, `${currentStudent.studentName}_학습리포트.png`);
+      downloadBlob(blob, getFileName(currentStudent.studentName));
+
+      messageApi.success(
+        `${currentStudent.studentName} 리포트를 저장했습니다.`,
+      );
     } catch (error) {
       console.error("이미지 저장 실패", error);
+      messageApi.error("이미지를 저장하지 못했습니다.");
     } finally {
       setImageSaving(false);
     }
@@ -338,10 +390,19 @@ export default function MobileReportPage() {
   // =========================================================
 
   const handleDownloadAllImages = async () => {
+    // 해당 기간 기록이 있는 학생만 저장
+    const targets = periodReports.filter((report) => report.records.length > 0);
+    const skipped = periodReports.length - targets.length;
+
+    if (targets.length === 0) {
+      messageApi.warning(`${currentPeriod.label} 기록이 있는 학생이 없습니다.`);
+      return;
+    }
+
     try {
       setImageSaving(true);
 
-      for (const report of reportPreviews) {
+      for (const report of targets) {
         const reportElement = findReportElement(report.student.studentId);
 
         if (!reportElement) {
@@ -350,15 +411,22 @@ export default function MobileReportPage() {
 
         const blob = await captureReportToPng(reportElement);
 
-        downloadBlob(blob, `${report.student.studentName}_학습리포트.png`);
+        downloadBlob(blob, getFileName(report.student.studentName));
 
         // 연속 다운로드가 막히지 않도록 잠깐 쉬었다가 다음 학생
         await new Promise((resolve) => {
           setTimeout(resolve, 400);
         });
       }
+
+      messageApi.success(
+        skipped > 0
+          ? `${targets.length}명 저장 완료 (기록 없는 ${skipped}명 제외)`
+          : `${targets.length}명 저장 완료`,
+      );
     } catch (error) {
       console.error("전체 이미지 저장 실패", error);
+      messageApi.error("이미지를 저장하지 못했습니다.");
     } finally {
       setImageSaving(false);
     }
@@ -366,6 +434,8 @@ export default function MobileReportPage() {
 
   return (
     <Card>
+      {contextHolder}
+
       {/* =====================================================
           제목
       ===================================================== */}
@@ -395,6 +465,17 @@ export default function MobileReportPage() {
           flexWrap: "wrap",
         }}
       >
+        <Segmented
+          options={EXAM_PERIODS.map((period) => ({
+            label: period.label,
+            value: period.key,
+          }))}
+          value={selectedPeriod}
+          onChange={(value) => {
+            setSelectedPeriod(value as ExamPeriodKey);
+          }}
+        />
+
         <Segmented
           options={gradeOptions}
           value={selectedGrade}
@@ -552,6 +633,9 @@ export default function MobileReportPage() {
       >
         <Text>
           선택 학생 <Text strong>{selectedStudentIds.length}명</Text>
+          <Text type="secondary" style={{ marginLeft: 8 }}>
+            ({currentPeriod.label})
+          </Text>
         </Text>
 
         <Button
@@ -569,8 +653,8 @@ export default function MobileReportPage() {
       ===================================================== */}
 
       <Modal
-        title="리포트 미리보기"
-        open={reportPreviews.length > 0}
+        title={`리포트 미리보기 · ${currentPeriod.label}`}
+        open={periodReports.length > 0}
         onCancel={handleClosePreview}
         width={REPORT_WIDTH + 60}
         centered
@@ -581,15 +665,16 @@ export default function MobileReportPage() {
           </Button>,
 
           <Button
-            key="currentPdf"
+            key="currentImage"
             loading={imageSaving}
+            disabled={!currentReport || currentReport.records.length === 0}
             onClick={handleDownloadImage}
           >
             현재 학생 저장
           </Button>,
 
           <Button
-            key="allPdf"
+            key="allImages"
             type="primary"
             loading={imageSaving}
             onClick={handleDownloadAllImages}
@@ -604,14 +689,15 @@ export default function MobileReportPage() {
           },
         }}
       >
-        {reportPreviews.length > 0 && (
+        {currentReport && (
           <>
-            {/* 페이지 이동 */}
+            {/* 기간 전환 + 페이지 이동 */}
             <div
               style={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
+                gap: 8,
                 marginBottom: 12,
               }}
             >
@@ -624,12 +710,32 @@ export default function MobileReportPage() {
                 이전
               </Button>
 
-              <Text strong>
-                {previewIndex + 1} / {reportPreviews.length}
-              </Text>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                }}
+              >
+                <Segmented
+                  size="small"
+                  options={EXAM_PERIODS.map((period) => ({
+                    label: period.label,
+                    value: period.key,
+                  }))}
+                  value={selectedPeriod}
+                  onChange={(value) => {
+                    setSelectedPeriod(value as ExamPeriodKey);
+                  }}
+                />
+
+                <Text strong>
+                  {previewIndex + 1} / {periodReports.length}
+                </Text>
+              </div>
 
               <Button
-                disabled={previewIndex === reportPreviews.length - 1}
+                disabled={previewIndex === periodReports.length - 1}
                 onClick={() => {
                   setPreviewIndex((prev) => prev + 1);
                 }}
@@ -637,6 +743,18 @@ export default function MobileReportPage() {
                 다음
               </Button>
             </div>
+
+            {/* 해당 기간 기록 없음 안내 */}
+            {currentReport.records.length === 0 && (
+              <Alert
+                type="info"
+                showIcon
+                style={{
+                  marginBottom: 12,
+                }}
+                message={`${currentReport.student.studentName} 학생은 ${currentPeriod.label} 기간 기록이 아직 없습니다.`}
+              />
+            )}
 
             {/* 높이 초과 경고 */}
             {previewHeight > REPORT_MAX_HEIGHT && (
@@ -653,11 +771,12 @@ export default function MobileReportPage() {
             {/* 현재 학생 리포트 */}
             <MobileReportTemplate
               ref={reportPreviewRef}
-              studentName={reportPreviews[previewIndex].student.studentName}
-              schoolName={reportPreviews[previewIndex].student.schoolName}
-              grade={reportPreviews[previewIndex].student.grade}
-              teacherName={reportPreviews[previewIndex].student.teacherName}
-              records={reportPreviews[previewIndex].records}
+              studentName={currentReport.student.studentName}
+              schoolName={currentReport.student.schoolName}
+              grade={currentReport.student.grade}
+              teacherName={currentReport.student.teacherName}
+              records={currentReport.records}
+              periodLabel={currentPeriod.label}
             />
           </>
         )}
@@ -668,11 +787,7 @@ export default function MobileReportPage() {
 
           화면에는 보이지 않지만
           선택한 학생 전체가 여기 렌더링됨.
-
-          학생 15명 선택
-          → MobileReportTemplate 15개 생성
-          → html2canvas로 하나씩 캡처
-          → PNG 15장 저장
+          (선택한 시험 기간 기록만)
       ===================================================== */}
 
       <div
@@ -685,7 +800,7 @@ export default function MobileReportPage() {
           pointerEvents: "none",
         }}
       >
-        {reportPreviews.map((report) => (
+        {periodReports.map((report) => (
           <div
             key={report.student.studentId}
             data-student-id={report.student.studentId}
@@ -699,6 +814,7 @@ export default function MobileReportPage() {
               grade={report.student.grade}
               teacherName={report.student.teacherName}
               records={report.records}
+              periodLabel={currentPeriod.label}
             />
           </div>
         ))}

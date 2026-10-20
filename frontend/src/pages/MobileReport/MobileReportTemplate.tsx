@@ -404,249 +404,343 @@ interface MobileReportTemplateProps {
   grade: string;
   teacherName: string;
   records: LessonRecord[];
+  periodLabel?: string; // 추가: "중간고사" | "기말고사"
 }
 
 const MobileReportTemplate = forwardRef<
   HTMLDivElement,
   MobileReportTemplateProps
->(({ studentName, schoolName, grade, teacherName, records }, ref) => {
-  // =========================================================
-  // 최근 8주
-  // 기존 리포트와 같은 기준: 날짜순 정렬 후 최신 8개
-  // =========================================================
+>(
+  (
+    { studentName, schoolName, grade, teacherName, records, periodLabel },
+    ref,
+  ) => {
+    // =========================================================
+    // 최근 8주
+    // 기존 리포트와 같은 기준: 날짜순 정렬 후 최신 8개
+    // =========================================================
 
-  const sortedRecords = [...records]
-    .sort(
-      (a, b) =>
-        new Date(a.lessonDate).getTime() - new Date(b.lessonDate).getTime(),
-    )
-    .slice(-8);
+    const sortedRecords = [...records]
+      .sort(
+        (a, b) =>
+          new Date(a.lessonDate).getTime() - new Date(b.lessonDate).getTime(),
+      )
+      .slice(-8);
 
-  // 주차 번호는 오래된 주부터 1주차
-  const numberedRecords = sortedRecords.map((record, index) => ({
-    record,
-    reportWeekNumber: index + 1,
-  }));
+    // 주차 번호는 오래된 주부터 1주차
+    const numberedRecords = sortedRecords.map((record, index) => ({
+      record,
+      reportWeekNumber: index + 1,
+    }));
 
-  // 화면에는 최신 주차가 맨 위
-  const displayRecords = [...numberedRecords].reverse();
+    // 화면에는 최신 주차가 맨 위
+    const displayRecords = [...numberedRecords].reverse();
 
-  // =========================================================
-  // 전체 상태 (기존 계산 함수 그대로 사용)
-  // =========================================================
+    // =========================================================
+    // 전체 상태 (기존 계산 함수 그대로 사용)
+    // =========================================================
 
-  const summary = calculateOverallSummary(sortedRecords);
+    const summary = calculateOverallSummary(sortedRecords);
 
-  // =========================================================
-  // 최근 공지사항 1개
-  // =========================================================
+    // =========================================================
+    // 최근 공지사항 1개
+    // =========================================================
 
-  const latestNoticeRecord = [...sortedRecords]
-    .reverse()
-    .find((record) => record.notice?.trim());
+    const latestNoticeRecord = [...sortedRecords]
+      .reverse()
+      .find((record) => record.notice?.trim());
 
-  const noticeItems = latestNoticeRecord
-    ? parseNotice(latestNoticeRecord.notice)
-    : [];
+    const noticeItems = latestNoticeRecord
+      ? parseNotice(latestNoticeRecord.notice)
+      : [];
 
-  return (
-    <div
-      ref={ref}
-      style={{
-        width: REPORT_WIDTH,
-        minHeight: REPORT_MIN_HEIGHT,
-        boxSizing: "border-box",
-        display: "flex",
-        flexDirection: "column",
-        background: COLORS.page,
-        fontFamily: FONT_FAMILY,
-        // 굵기는 문서에 700으로 지정된 곳만 굵게, 나머지는 보통(400)
-        fontWeight: 400,
-        // 전역 CSS의 자간(0.18px)을 받지 않도록 초기화
-        letterSpacing: 0,
-        color: COLORS.number,
-        wordBreak: "keep-all",
-        overflowWrap: "anywhere",
-      }}
-    >
-      {/* =====================================================
+    return (
+      <div
+        ref={ref}
+        style={{
+          width: REPORT_WIDTH,
+          minHeight: REPORT_MIN_HEIGHT,
+          boxSizing: "border-box",
+          display: "flex",
+          flexDirection: "column",
+          background: COLORS.page,
+          fontFamily: FONT_FAMILY,
+          // 굵기는 문서에 700으로 지정된 곳만 굵게, 나머지는 보통(400)
+          fontWeight: 400,
+          // 전역 CSS의 자간(0.18px)을 받지 않도록 초기화
+          letterSpacing: 0,
+          color: COLORS.number,
+          wordBreak: "keep-all",
+          overflowWrap: "anywhere",
+        }}
+      >
+        {/* =====================================================
           ① 헤더 (두 줄)
       ===================================================== */}
 
-      <div
-        style={{
-          padding: "14px 16px 16px",
-          background: COLORS.header,
-          color: "#FFFFFF",
-        }}
-      >
-        {/* 1줄: 로고 · 학원명 · 학생관리카드 / STUDENT REPORT */}
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
+            padding: "14px 16px 16px",
+            background: COLORS.header,
+            color: "#FFFFFF",
           }}
         >
+          {/* 1줄: 로고 · 학원명 · 학생관리카드 / STUDENT REPORT */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 8,
-              minWidth: 0,
+              justifyContent: "space-between",
+              gap: 12,
             }}
           >
             <div
               style={{
-                width: 30,
-                height: 30,
-                borderRadius: 8,
-                background: "#FFFFFF",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
-                overflow: "hidden",
-                flexShrink: 0,
+                gap: 8,
+                minWidth: 0,
               }}
             >
-              <img
-                src={academyLogo}
-                alt="이주미영어학원"
+              <div
                 style={{
-                  width: 26,
-                  height: 26,
-                  objectFit: "contain",
+                  width: 30,
+                  height: 30,
+                  borderRadius: 8,
+                  background: "#FFFFFF",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden",
+                  flexShrink: 0,
                 }}
-              />
+              >
+                <img
+                  src={academyLogo}
+                  alt="이주미영어학원"
+                  style={{
+                    width: 26,
+                    height: 26,
+                    objectFit: "contain",
+                  }}
+                />
+              </div>
+
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                이주미영어학원
+              </span>
+
+              <span
+                style={{
+                  fontSize: 10.5,
+                  opacity: 0.75,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                학생관리카드
+              </span>
             </div>
 
-            <span
+            <div
               style={{
-                fontSize: 13,
-                fontWeight: 700,
-                whiteSpace: "nowrap",
-              }}
-            >
-              이주미영어학원
-            </span>
-
-            <span
-              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
                 fontSize: 10.5,
-                opacity: 0.75,
                 whiteSpace: "nowrap",
               }}
             >
-              학생관리카드
-            </span>
+              <span
+                style={{
+                  letterSpacing: 1,
+                  opacity: 0.75,
+                }}
+              >
+                STUDENT REPORT
+              </span>
+
+              <span>
+                {periodLabel
+                  ? `${periodLabel} 학습 리포트`
+                  : "최근 8주 학습 리포트"}
+              </span>
+            </div>
           </div>
 
+          {/* 2줄: 학생 이름 · 학교 · 학년 · 담당 */}
           <div
             style={{
               display: "flex",
-              alignItems: "center",
-              gap: 6,
-              fontSize: 10.5,
-              whiteSpace: "nowrap",
+              alignItems: "baseline",
+              gap: 10,
+              marginTop: 10,
             }}
           >
             <span
               style={{
-                letterSpacing: 1,
-                opacity: 0.75,
+                fontSize: 28,
+                fontWeight: 700,
+                lineHeight: 1.2,
               }}
             >
-              STUDENT REPORT
+              {studentName}
             </span>
 
-            <span>최근 8주 학습 리포트</span>
+            <span
+              style={{
+                fontSize: 12,
+                opacity: 0.85,
+              }}
+            >
+              <DotJoin items={[schoolName, grade, `담당 ${teacherName}`]} />
+            </span>
           </div>
         </div>
 
-        {/* 2줄: 학생 이름 · 학교 · 학년 · 담당 */}
         <div
           style={{
+            flex: 1,
             display: "flex",
-            alignItems: "baseline",
-            gap: 10,
-            marginTop: 10,
+            flexDirection: "column",
+            gap: 8,
+            padding: 12,
           }}
         >
-          <span
-            style={{
-              fontSize: 28,
-              fontWeight: 700,
-              lineHeight: 1.2,
-            }}
-          >
-            {studentName}
-          </span>
-
-          <span
-            style={{
-              fontSize: 12,
-              opacity: 0.85,
-            }}
-          >
-            <DotJoin items={[schoolName, grade, `담당 ${teacherName}`]} />
-          </span>
-        </div>
-      </div>
-
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-          padding: 12,
-        }}
-      >
-        {/* =====================================================
+          {/* =====================================================
             ② 전체 상태 | Notice
         ===================================================== */}
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 8,
-          }}
-        >
-          {/* 전체 상태 */}
-          <div style={cardStyle}>
-            <div style={sectionTitleStyle}>전체 상태</div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 8,
+            }}
+          >
+            {/* 전체 상태 */}
+            <div style={cardStyle}>
+              <div style={sectionTitleStyle}>전체 상태</div>
 
-            <OverallRow
-              title="숙제 평균"
-              score={summary.homeworkAverage}
-              suffix="%"
-            />
+              <OverallRow
+                title="숙제 평균"
+                score={summary.homeworkAverage}
+                suffix="%"
+              />
 
-            <OverallRow
-              title="당일평가 평균"
-              score={summary.dailyAverage}
-              suffix="%"
-            />
+              <OverallRow
+                title="당일평가 평균"
+                score={summary.dailyAverage}
+                suffix="%"
+              />
 
-            <OverallRow
-              title="복습테스트 평균"
-              score={summary.reviewAverage}
-              suffix="점"
-            />
+              <OverallRow
+                title="복습테스트 평균"
+                score={summary.reviewAverage}
+                suffix="점"
+              />
+            </div>
+
+            {/* Notice */}
+            <div style={cardStyle}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "baseline",
+                  gap: 5,
+                }}
+              >
+                <span style={sectionTitleStyle}>Notice</span>
+
+                <span
+                  style={{
+                    fontSize: 10.5,
+                    color: COLORS.sub,
+                  }}
+                >
+                  전달사항
+                </span>
+              </div>
+
+              {noticeItems.length > 0 ? (
+                <div
+                  style={{
+                    marginTop: 6,
+                  }}
+                >
+                  {noticeItems.map((item, index) => (
+                    <div
+                      key={`${item.label}-${index}`}
+                      style={{
+                        display: "flex",
+                        gap: 6,
+                        padding: "3px 0",
+                        fontSize: 12,
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 54,
+                          flexShrink: 0,
+                          color: COLORS.sub,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {item.label}
+                      </span>
+
+                      <span
+                        style={{
+                          flex: 1,
+                          minWidth: 0,
+                        }}
+                      >
+                        {item.content}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div
+                  style={{
+                    marginTop: 6,
+                    fontSize: 12,
+                    color: COLORS.sub,
+                  }}
+                >
+                  전달사항이 없습니다.
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Notice */}
-          <div style={cardStyle}>
+          {/* =====================================================
+            ③ 학습 현황 표 (쌤 코멘트는 맨 오른쪽 칸)
+            ④ 범례 + 꼬리말
+        ===================================================== */}
+
+          <div
+            style={{
+              ...cardStyle,
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
             <div
               style={{
                 display: "flex",
                 alignItems: "baseline",
-                gap: 5,
+                justifyContent: "space-between",
               }}
             >
-              <span style={sectionTitleStyle}>Notice</span>
+              <span style={sectionTitleStyle}>학습 현황</span>
 
               <span
                 style={{
@@ -654,343 +748,261 @@ const MobileReportTemplate = forwardRef<
                   color: COLORS.sub,
                 }}
               >
-                전달사항
+                최신 주차부터
               </span>
             </div>
 
-            {noticeItems.length > 0 ? (
-              <div
-                style={{
-                  marginTop: 6,
-                }}
-              >
-                {noticeItems.map((item, index) => (
-                  <div
-                    key={`${item.label}-${index}`}
-                    style={{
-                      display: "flex",
-                      gap: 6,
-                      padding: "3px 0",
-                      fontSize: 12,
-                      lineHeight: 1.45,
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 54,
-                        flexShrink: 0,
-                        color: COLORS.sub,
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {item.label}
-                    </span>
-
-                    <span
-                      style={{
-                        flex: 1,
-                        minWidth: 0,
-                      }}
-                    >
-                      {item.content}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div
-                style={{
-                  marginTop: 6,
-                  fontSize: 12,
-                  color: COLORS.sub,
-                }}
-              >
-                전달사항이 없습니다.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* =====================================================
-            ③ 학습 현황 표 (쌤 코멘트는 맨 오른쪽 칸)
-            ④ 범례 + 꼬리말
-        ===================================================== */}
-
-        <div
-          style={{
-            ...cardStyle,
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              justifyContent: "space-between",
-            }}
-          >
-            <span style={sectionTitleStyle}>학습 현황</span>
-
-            <span
+            {/* 표 머리글 (코멘트 열은 머리글 없음) */}
+            <div
               style={{
+                ...TABLE_GRID,
+                marginTop: 8,
+                padding: "0 6px 4px",
                 fontSize: 10.5,
                 color: COLORS.sub,
+                whiteSpace: "nowrap",
               }}
             >
-              최신 주차부터
-            </span>
-          </div>
+              <span>주차 / 진도</span>
+              <span style={{ textAlign: "center" }}>당일 평가</span>
+              <span style={{ textAlign: "center" }}>숙제</span>
+              <span style={{ textAlign: "center" }}>복습테스트</span>
+              <span style={{ textAlign: "center" }}>암기반</span>
+              <span />
+            </div>
 
-          {/* 표 머리글 (코멘트 열은 머리글 없음) */}
-          <div
-            style={{
-              ...TABLE_GRID,
-              marginTop: 8,
-              padding: "0 6px 4px",
-              fontSize: 10.5,
-              color: COLORS.sub,
-              whiteSpace: "nowrap",
-            }}
-          >
-            <span>주차 / 진도</span>
-            <span style={{ textAlign: "center" }}>당일 평가</span>
-            <span style={{ textAlign: "center" }}>숙제</span>
-            <span style={{ textAlign: "center" }}>복습테스트</span>
-            <span style={{ textAlign: "center" }}>암기반</span>
-            <span />
-          </div>
-
-          {/* =====================================================
+            {/* =====================================================
               학습 현황: 항상 8줄, 한 줄 높이 고정
               - 기록이 8주보다 적으면 남은 줄은 빈 줄로 채움
               - 코멘트는 3줄까지 표시
           ===================================================== */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateRows: `repeat(${REPORT_ROW_COUNT}, ${REPORT_ROW_HEIGHT}px)`,
-              gap: 4,
-            }}
-          >
-            {displayRecords.map(({ record, reportWeekNumber }, index) => {
-              const isLatest = index === 0;
+            <div
+              style={{
+                display: "grid",
+                gridTemplateRows: `repeat(${REPORT_ROW_COUNT}, ${REPORT_ROW_HEIGHT}px)`,
+                gap: 4,
+              }}
+            >
+              {displayRecords.map(({ record, reportWeekNumber }, index) => {
+                const isLatest = index === 0;
 
-              // 기존 리포트와 같은 계산 (숙제 1~3, 당일 1~3 평균)
-              const dailyAverage = calculateAverage(
-                record.dailyEvaluations.map((item) => item.achievement),
-              );
+                // 기존 리포트와 같은 계산 (숙제 1~3, 당일 1~3 평균)
+                const dailyAverage = calculateAverage(
+                  record.dailyEvaluations.map((item) => item.achievement),
+                );
 
-              const homeworkAverage = calculateAverage(
-                record.homeworks.map((item) => item.achievement),
-              );
+                const homeworkAverage = calculateAverage(
+                  record.homeworks.map((item) => item.achievement),
+                );
 
-              const reviewScore = record.reviewTestScore;
+                const reviewScore = record.reviewTestScore;
 
-              const memorization =
-                record.memorizationAchievement?.trim() || "-";
+                const memorization =
+                  record.memorizationAchievement?.trim() || "-";
 
-              return (
-                <div
-                  key={record.recordId}
-                  style={{
-                    ...TABLE_GRID,
-                    padding: "3px 6px",
-                    borderRadius: 8,
-                    background: isLatest ? COLORS.latestRow : "transparent",
-                  }}
-                >
-                  {/* 주차 / 몇 주차 / 진도 (세 줄) */}
+                return (
                   <div
+                    key={record.recordId}
                     style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      minWidth: 0,
+                      ...TABLE_GRID,
+                      padding: "3px 6px",
+                      borderRadius: 8,
+                      background: isLatest ? COLORS.latestRow : "transparent",
                     }}
                   >
-                    <span
+                    {/* 주차 / 몇 주차 / 진도 (세 줄) */}
+                    <div
                       style={{
-                        fontSize: 12.5,
-                        fontWeight: 700,
-                        lineHeight: 1.3,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        minWidth: 0,
                       }}
                     >
-                      {formatWeekLabel(record.weekLabel) ||
-                        `${reportWeekNumber}주차`}
-                    </span>
+                      <span
+                        style={{
+                          fontSize: 12.5,
+                          fontWeight: 700,
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {formatWeekLabel(record.weekLabel) ||
+                          `${reportWeekNumber}주차`}
+                      </span>
 
-                    <span
-                      style={{
-                        fontSize: 10.5,
-                        lineHeight: 1.35,
-                        color: COLORS.sub,
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {isLatest ? (
-                        <DotJoin
-                          items={["이번 주", `${reportWeekNumber}주차`]}
-                        />
-                      ) : (
-                        `${reportWeekNumber}주차`
-                      )}
-                    </span>
-
-                    {record.progress && (
                       <span
                         style={{
                           fontSize: 10.5,
                           lineHeight: 1.35,
                           color: COLORS.sub,
+                          whiteSpace: "nowrap",
                         }}
                       >
-                        {record.progress}
+                        {isLatest ? (
+                          <DotJoin
+                            items={["이번 주", `${reportWeekNumber}주차`]}
+                          />
+                        ) : (
+                          `${reportWeekNumber}주차`
+                        )}
                       </span>
-                    )}
-                  </div>
 
-                  <TableCell
-                    background={
-                      CELL_BACKGROUNDS[getAchievementTagColor(dailyAverage)]
-                    }
-                    value={dailyAverage === null ? "-" : `${dailyAverage}%`}
-                  />
+                      {record.progress && (
+                        <span
+                          style={{
+                            fontSize: 10.5,
+                            lineHeight: 1.35,
+                            color: COLORS.sub,
+                          }}
+                        >
+                          {record.progress}
+                        </span>
+                      )}
+                    </div>
 
-                  <TableCell
-                    background={
-                      CELL_BACKGROUNDS[getAchievementTagColor(homeworkAverage)]
-                    }
-                    value={
-                      homeworkAverage === null ? "-" : `${homeworkAverage}%`
-                    }
-                    lastWeekRange={LAST_WEEK_RANGE_LABEL}
-                  />
+                    <TableCell
+                      background={
+                        CELL_BACKGROUNDS[getAchievementTagColor(dailyAverage)]
+                      }
+                      value={dailyAverage === null ? "-" : `${dailyAverage}%`}
+                    />
 
-                  <TableCell
-                    background={
-                      CELL_BACKGROUNDS[getAchievementTagColor(reviewScore)]
-                    }
-                    value={reviewScore === null ? "-" : `${reviewScore}점`}
-                    lastWeekRange={LAST_WEEK_RANGE_LABEL}
-                    memo={
-                      hasText(record.reviewFeedback)
-                        ? record.reviewFeedback.trim()
-                        : undefined
-                    }
-                  />
+                    <TableCell
+                      background={
+                        CELL_BACKGROUNDS[
+                          getAchievementTagColor(homeworkAverage)
+                        ]
+                      }
+                      value={
+                        homeworkAverage === null ? "-" : `${homeworkAverage}%`
+                      }
+                      lastWeekRange={LAST_WEEK_RANGE_LABEL}
+                    />
 
-                  {/* 암기반은 상태와 관계없이 회색 */}
-                  <TableCell
-                    background={CELL_BACKGROUNDS.default}
-                    value={memorization}
-                    valueSize={memorization === "-" ? 15 : 12.5}
-                    multiline
-                  />
+                    <TableCell
+                      background={
+                        CELL_BACKGROUNDS[getAchievementTagColor(reviewScore)]
+                      }
+                      value={reviewScore === null ? "-" : `${reviewScore}점`}
+                      lastWeekRange={LAST_WEEK_RANGE_LABEL}
+                      memo={
+                        hasText(record.reviewFeedback)
+                          ? record.reviewFeedback.trim()
+                          : undefined
+                      }
+                    />
 
-                  {/* 쌤 코멘트: 없어도 빈 칸 유지, 칸 크기 고정 (3줄까지) */}
-                  <div
-                    style={{
-                      padding: "4px 7px",
-                      borderRadius: 7,
-                      border: `1px solid ${COLORS.commentBorder}`,
-                      background: "#FFFFFF",
-                      boxSizing: "border-box",
-                      display: "flex",
-                      alignItems: "center",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <span
+                    {/* 암기반은 상태와 관계없이 회색 */}
+                    <TableCell
+                      background={CELL_BACKGROUNDS.default}
+                      value={memorization}
+                      valueSize={memorization === "-" ? 15 : 12.5}
+                      multiline
+                    />
+
+                    {/* 쌤 코멘트: 없어도 빈 칸 유지, 칸 크기 고정 (3줄까지) */}
+                    <div
                       style={{
-                        display: "block",
-                        maxHeight: 12 * 1.4 * COMMENT_MAX_LINES,
+                        padding: "4px 7px",
+                        borderRadius: 7,
+                        border: `1px solid ${COLORS.commentBorder}`,
+                        background: "#FFFFFF",
+                        boxSizing: "border-box",
+                        display: "flex",
+                        alignItems: "center",
                         overflow: "hidden",
-                        fontSize: 12,
-                        lineHeight: 1.4,
-                        color: COLORS.comment,
-                        // 가는 글씨라 흐려 보이지 않도록 코멘트만 한 단계 굵게
-                        fontWeight: 500,
-                        whiteSpace: "pre-wrap",
-                        // 좁은 칸이라 한글은 글자 단위로 줄바꿈해 줄 수를 줄임
-                        wordBreak: "normal",
                       }}
                     >
-                      {hasText(record.teacherComment)
-                        ? record.teacherComment.trim()
-                        : ""}
-                    </span>
+                      <span
+                        style={{
+                          display: "block",
+                          maxHeight: 12 * 1.4 * COMMENT_MAX_LINES,
+                          overflow: "hidden",
+                          fontSize: 12,
+                          lineHeight: 1.4,
+                          color: COLORS.comment,
+                          // 가는 글씨라 흐려 보이지 않도록 코멘트만 한 단계 굵게
+                          fontWeight: 500,
+                          whiteSpace: "pre-wrap",
+                          // 좁은 칸이라 한글은 글자 단위로 줄바꿈해 줄 수를 줄임
+                          wordBreak: "normal",
+                        }}
+                      >
+                        {hasText(record.teacherComment)
+                          ? record.teacherComment.trim()
+                          : ""}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
 
-            {/* 기록이 8주보다 적을 때 남은 줄은 칸 없이 흰 여백 (자리만 차지) */}
-            {Array.from(
-              {
-                length: Math.max(REPORT_ROW_COUNT - displayRecords.length, 0),
-              },
-              (_, index) => (
-                <div key={`empty-row-${index}`} />
-              ),
-            )}
-          </div>
+              {/* 기록이 8주보다 적을 때 남은 줄은 칸 없이 흰 여백 (자리만 차지) */}
+              {Array.from(
+                {
+                  length: Math.max(REPORT_ROW_COUNT - displayRecords.length, 0),
+                },
+                (_, index) => (
+                  <div key={`empty-row-${index}`} />
+                ),
+              )}
+            </div>
 
-          {/* 범례 + 꼬리말 (카드 맨 아래로 밀착) */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              marginTop: "auto",
-              paddingTop: 10,
-              fontSize: 10.5,
-              color: COLORS.sub,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {(
-              [
-                ["success", "우수"],
-                ["warning", "주의"],
-                ["error", "보완 필요"],
-                ["default", "암기반 · 미입력"],
-              ] as Array<[AchievementTagColor, string]>
-            ).map(([status, label]) => (
-              <span
-                key={status}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 4,
-                }}
-              >
-                <span
-                  style={{
-                    width: 9,
-                    height: 9,
-                    borderRadius: 3,
-                    background: CELL_BACKGROUNDS[status],
-                  }}
-                />
-                {label}
-              </span>
-            ))}
-
-            <span
+            {/* 범례 + 꼬리말 (카드 맨 아래로 밀착) */}
+            <div
               style={{
-                marginLeft: "auto",
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                marginTop: "auto",
+                paddingTop: 10,
+                fontSize: 10.5,
+                color: COLORS.sub,
+                whiteSpace: "nowrap",
               }}
             >
-              이주미영어학원 학생 학습 리포트
-            </span>
+              {(
+                [
+                  ["success", "우수"],
+                  ["warning", "주의"],
+                  ["error", "보완 필요"],
+                  ["default", "암기반 · 미입력"],
+                ] as Array<[AchievementTagColor, string]>
+              ).map(([status, label]) => (
+                <span
+                  key={status}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 9,
+                      height: 9,
+                      borderRadius: 3,
+                      background: CELL_BACKGROUNDS[status],
+                    }}
+                  />
+                  {label}
+                </span>
+              ))}
+
+              <span
+                style={{
+                  marginLeft: "auto",
+                }}
+              >
+                이주미영어학원 학생 학습 리포트
+              </span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-});
+    );
+  },
+);
 
 MobileReportTemplate.displayName = "MobileReportTemplate";
 
