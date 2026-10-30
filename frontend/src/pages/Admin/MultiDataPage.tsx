@@ -386,6 +386,50 @@ export default function MultiDataPage() {
                     value: "10월 5주",
                     label: "10월 5주",
                   },
+                  {
+                    value: "10월 5주",
+                    label: "10월 5주",
+                  },
+                  {
+                    value: "11월 1주",
+                    label: "11월 1주",
+                  },
+                  {
+                    value: "11월 2주",
+                    label: "11월 2주",
+                  },
+                  {
+                    value: "11월 3주",
+                    label: "11월 3주",
+                  },
+                  {
+                    value: "11월 4주",
+                    label: "11월 4주",
+                  },
+                  {
+                    value: "11월 5주",
+                    label: "11월 5주",
+                  },
+                  {
+                    value: "12월 1주",
+                    label: "12월 1주",
+                  },
+                  {
+                    value: "12월 2주",
+                    label: "12월 2주",
+                  },
+                  {
+                    value: "12월 3주",
+                    label: "12월 3주",
+                  },
+                  {
+                    value: "12월 4주",
+                    label: "12월 4주",
+                  },
+                  {
+                    value: "12월 5주",
+                    label: "12월 5주",
+                  },
                 ]}
                 onChange={setSelectedWeek}
               />
