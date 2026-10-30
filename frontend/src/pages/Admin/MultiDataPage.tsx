@@ -361,6 +361,7 @@ export default function MultiDataPage() {
               <Select
                 value={selectedWeek || undefined}
                 placeholder="주차 선택"
+                virtual={false}
                 style={{
                   width: "100%",
                   marginTop: 6,
