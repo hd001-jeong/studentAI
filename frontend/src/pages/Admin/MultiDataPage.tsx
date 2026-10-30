@@ -387,10 +387,6 @@ export default function MultiDataPage() {
                     label: "10월 5주",
                   },
                   {
-                    value: "10월 5주",
-                    label: "10월 5주",
-                  },
-                  {
                     value: "11월 1주",
                     label: "11월 1주",
                   },
