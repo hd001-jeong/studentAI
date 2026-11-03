@@ -305,20 +305,20 @@ def read_student_records_from_sheet(
             record,
         )
 
-    # 최신 주차 순으로 정렬
+    # 최신 수업일 기준으로 정렬
     records = sorted(
         records,
-        key=lambda record: record["weekNumber"] or 0,
+        key=lambda record: record["lessonDate"] or "",
         reverse=True,
     )
 
     # 최신 8개만 가져오기
     records = records[:8]
 
-    # 화면에서는 오래된 주차 → 최신 주차 순으로 표시
+    # 화면에서는 오래된 날짜 → 최신 날짜 순으로 표시
     records = sorted(
         records,
-        key=lambda record: record["weekNumber"] or 0,
+        key=lambda record: record["lessonDate"] or "",
     )
 
     return records
@@ -401,7 +401,7 @@ def read_student_records_batch_from_sheet(
             records_by_student[
                 student_id
             ],
-            key=lambda record: record["weekNumber"] or 0,
+            key=lambda record: record["lessonDate"] or "",
             reverse=True,
         )
 
@@ -411,7 +411,7 @@ def read_student_records_batch_from_sheet(
             student_id
         ] = sorted(
             student_records,
-            key=lambda record: record["weekNumber"] or 0,
+            key=lambda record: record["lessonDate"] or "",
         )
 
     return records_by_student
